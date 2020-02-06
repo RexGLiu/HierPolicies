@@ -10,39 +10,12 @@ from model.comp_rooms_agents import IndependentClusterAgent, JointClusteringAgen
 from tqdm import tqdm
 
 import numpy as np
-# this is the context: goal function thing, 
-# sucessor_function = {
-#     0: {"A": 1, "B": 0, "C": 0},
-#     1: {"A": 2, "B": 0, "C": 0},
-#     2: {"A": 3, "B": 0, "C": 0},
-#     3: {"A": 4, "B": 0, "C": 0},
-#     4: {"A": 5, "B": 0, "C": 0},
-#     5: {"A": None, "B": 0, "C": 0}, # signifies the end!
-# }
-
-# reward_function = {
-#     0: {"A": 1, "B": 0, "C": 0},
-#     1: {"A": 1, "B": 0, "C": 0},
-#     2: {"A": 1, "B": 0, "C": 0},
-#     3: {"A": 1, "B": 0, "C": 0},
-#     4: {"A": 1, "B": 0, "C": 0},
-#     5: {"A": 1, "B": 0, "C": 0},
-# }
 
 mappings = {
     0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
     1: {4: u'up', 5: u'left', 6: u'right', 7: u'down'},
     2: {1: u'left', 0: u'up', 3: u'right', 2: u'down'},
     3: {5: u'up', 4: u'left', 7: u'down', 6: u'right'},
-}
-
-sublevel_order = {
-    0: {"A": 0, "B": 1, "C": 2, "D": 3},
-    1: {"A": 2, "B": 1, "C": 3, "D": 0},
-    2: {"A": 1, "B": 3, "C": 2, "D": 0},
-    3: {"A": 0, "B": 3, "C": 1, "D": 2},
-    4: {"A": 3, "B": 2, "C": 0, "D": 1},
-    5: {"A": 3, "B": 0, "C": 1, "D": 2},
 }
 
 room_mappings = {
@@ -55,21 +28,82 @@ room_mappings = {
 }
 
 
-sublvl_mappings = {
+sublvl_mappings = {0: {
     0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
     1: {4: u'up', 5: u'left', 6: u'right', 7: u'down'},
     2: {1: u'left', 0: u'up', 3: u'right', 2: u'down'},
     3: {5: u'up', 4: u'left', 7: u'down', 6: u'right'},
+    },
+    1: {
+    0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
+    1: {4: u'up', 5: u'left', 6: u'right', 7: u'down'},
+    2: {1: u'left', 0: u'up', 3: u'right', 2: u'down'},
+    3: {5: u'up', 4: u'left', 7: u'down', 6: u'right'},
+    },
+    2: {
+    0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
+    1: {4: u'up', 5: u'left', 6: u'right', 7: u'down'},
+    2: {1: u'left', 0: u'up', 3: u'right', 2: u'down'},
+    3: {5: u'up', 4: u'left', 7: u'down', 6: u'right'},
+    },
+    3: {
+    0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
+    1: {4: u'up', 5: u'left', 6: u'right', 7: u'down'},
+    2: {1: u'left', 0: u'up', 3: u'right', 2: u'down'},
+    3: {5: u'up', 4: u'left', 7: u'down', 6: u'right'},
+    },
+    4: {
+    0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
+    1: {4: u'up', 5: u'left', 6: u'right', 7: u'down'},
+    2: {1: u'left', 0: u'up', 3: u'right', 2: u'down'},
+    3: {5: u'up', 4: u'left', 7: u'down', 6: u'right'},
+    },
+    5: {
+    0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
+    1: {4: u'up', 5: u'left', 6: u'right', 7: u'down'},
+    2: {1: u'left', 0: u'up', 3: u'right', 2: u'down'},
+    3: {5: u'up', 4: u'left', 7: u'down', 6: u'right'},
+    }
 }
 
 
 subreward_function = {
+    0: {
     0: {"A": 1, "B": 0, "C": 0},
     1: {"A": 1, "B": 0, "C": 0},
     2: {"A": 1, "B": 0, "C": 0},
     3: {"A": 1, "B": 0, "C": 0},
-    4: {"A": 1, "B": 0, "C": 0},
-    5: {"A": 1, "B": 0, "C": 0},
+    },
+    1: {
+    0: {"A": 1, "B": 0, "C": 0},
+    1: {"A": 1, "B": 0, "C": 0},
+    2: {"A": 1, "B": 0, "C": 0},
+    3: {"A": 1, "B": 0, "C": 0},
+    },
+    2: {
+    0: {"A": 1, "B": 0, "C": 0},
+    1: {"A": 1, "B": 0, "C": 0},
+    2: {"A": 1, "B": 0, "C": 0},
+    3: {"A": 1, "B": 0, "C": 0},
+    },
+    3: {
+    0: {"A": 1, "B": 0, "C": 0},
+    1: {"A": 1, "B": 0, "C": 0},
+    2: {"A": 1, "B": 0, "C": 0},
+    3: {"A": 1, "B": 0, "C": 0},
+    },
+    4: {
+    0: {"A": 1, "B": 0, "C": 0},
+    1: {"A": 1, "B": 0, "C": 0},
+    2: {"A": 1, "B": 0, "C": 0},
+    3: {"A": 1, "B": 0, "C": 0},
+    },
+    5: {
+    0: {"A": 1, "B": 0, "C": 0},
+    1: {"A": 1, "B": 0, "C": 0},
+    2: {"A": 1, "B": 0, "C": 0},
+    3: {"A": 1, "B": 0, "C": 0},
+    }
 }
 
 
@@ -81,16 +115,13 @@ n_rooms = len(room_mappings)
 # make it easy, have the door and start locations be the same for each room
 start_location = {r: (0,0) for r in range(n_rooms)}
 
-# make it easy, each door is in the same spot
-door_locations = {r: {'A':(5, 5), 'B':(5, 0), 'C':(0, 5)} for r in range(n_rooms)}
-
 # make it easy, each door in sublevel is in the same spot
 subdoor_locations = {r: {'A':(5, 5), 'B':(5, 0), 'C':(0, 5)} for r in range(n_rooms)}
 
 sublvl_coords = [(1, 2), (2, 5), (3, 1), (4, 3)]
 n_sublvls = len(sublvl_coords)
 sublvl_order = [random.sample(xrange(n_sublvls), n_sublvls) for i in range(n_rooms)]
-sublvl_locations = {r: {'A':sublvl_coords[sublvl_order[r][0]], 'B':sublvl_coords[sublvl_order[r][0]], 'C':sublvl_coords[sublvl_order[r][0]], 'D':sublvl_coords[sublvl_order[r][0]]} for r in range(n_rooms)}
+sublvl_locations = {r: [('A',sublvl_coords[sublvl_order[r][0]]), ('B',sublvl_coords[sublvl_order[r][1]]), ('C',sublvl_coords[sublvl_order[r][2]]), ('D',sublvl_coords[sublvl_order[r][3]])] for r in range(n_rooms)}
 
 
 n_sims = 1
@@ -104,13 +135,13 @@ alpha = 1.0
 inv_temp = 5.0
 
 
-sublvl_args = [list([sublvl_locations[i], sublvl_mappings, subreward_function[i],
+sublvl_args = [list([sublvl_locations[i], sublvl_mappings[i], subreward_function[i],
                   subdoor_locations]) for i in range(n_rooms)]
 
 # rooms_args = list([room_mappings, sucessor_function, reward_function, start_location,
 #                   door_locations, sublvl_args])
 
-rooms_args = list([room_mappings, start_location, door_locations, sublvl_args])
+rooms_args = list([room_mappings, start_location, sublvl_args])
 
 
 def sim_task(rooms_args, desc='Running Task'):
