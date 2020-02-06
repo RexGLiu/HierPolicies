@@ -1,0 +1,6 @@
+cython
+numpy
+pandas
+numpy
+seaborn
+tqdm
