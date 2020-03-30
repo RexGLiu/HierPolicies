@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from gridworld import Task
+#from gridworld import Task
 from cython_library import RewardHypothesis, MappingHypothesis, TransitionHypothesis
 from cython_library import policy_iteration, value_iteration
 
