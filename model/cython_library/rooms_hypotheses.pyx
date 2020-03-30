@@ -637,17 +637,14 @@ cdef class UpperDoorCluster(object):
         baseline = 1.0 / (self.n_goals+1)
 
         if r > 0:     
-            if seq + 1 < self.n_goals:
-                r0 = 1.0 / (self.n_goals - seq - 1)
-
             self.goal_reward_probability[seq+1:self.n_goals,goal] = 0
             self.goal_reward_probability[seq,:] = 0
             self.goal_reward_probability[seq,goal] = 1
             
             for s0 in range(seq+1,self.n_goals):
+                norm = np.sum(self.goal_reward_probability[s0,:])
                 for g0 in range(self.n_goals):
-                    if 1.0 > self.goal_reward_probability[s0,g0] and self.goal_reward_probability[s0,g0] > baseline:
-                        self.goal_reward_probability[s0,g0] = r0
+                    self.goal_reward_probability[s0,g0] /= norm
         else:
             assert self.goal_reward_probability[seq,goal] < 1.0
             self.goal_reward_probability[seq,goal] = 0
