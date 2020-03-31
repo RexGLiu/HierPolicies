@@ -260,10 +260,7 @@ class MultiStepAgent(object):
 
             # End condition is a goal check
             if goal_id is not None:
-                print c, ' ', goal_id, ' ', r, ' ', times_seen_context[c]
-                if r == 0 and c%4 == 0:
-                    print '   ', self.task.get_goal_index(0, goal_id), ' ', seq, ' ', self.get_goal_probability(c)
-                    print '   ', self.task.upper_goal_index
+#                print c, ' ', goal_id, ' ', r, ' ', times_seen_context[c]
                 self.update_goal_values(c, seq, goal_id, r)
                 new_trial = True
             
@@ -296,13 +293,11 @@ class MultiStepAgent(object):
 
             # evaluate stop condition
             if self.task.end_check():
-                print c, ' ', goal_id, ' ', r, ' ', times_seen_context[c]
-                print 'asdf2'
+                print 'Successful completion'
                 break
 
             if step_counter > 300:
-                print c, ' ', times_seen_context[c]
-                print 'asdf'
+                print 'Early termination'
                 break
 
         return self.get_results()
