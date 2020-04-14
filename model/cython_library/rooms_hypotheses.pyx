@@ -834,7 +834,7 @@ cdef class HierarchicalMappingCluster(object):
         
         self.tot_sublvl_prior_log_prob = 1.0
         
-        
+
     def add_new_sublvl_context_assignment(self, int c, list hierarchical_assignment, 
                                           MappingCluster new_sublvl_cluster):
         cdef int k
@@ -974,26 +974,20 @@ cdef class HierarchicalMappingCluster(object):
             cluster = self.sublvl_clusters[sublvl][k]
             return cluster.get_likelihood(a, aa)
 
-    def deep_copy(self, dict old_sublvl_clusters, dict new_sublvl_clusters):
+    def deep_copy(self):
         cdef HierarchicalMappingCluster _h_copy = HierarchicalMappingCluster(
             self.n_sublvls, self.n_primitive_actions, self.n_abstract_actions, 
             self.alpha, self.mapping_prior
         )
         
-        cdef int k, k2, ii, a, aa, sublvl
+        cdef int k, a, aa, sublvl
         cdef MappingCluster cluster
 
         _h_copy.RoomCluster = self.RoomCluster.deep_copy()
         
         # room-wide CRP for sublvl clusters
         _h_copy.roomwide_sublvl_assignments = {c: k for c, k in self.roomwide_sublvl_assignments.iteritems()}
-        
-        _h_copy.roomwide_sublvl_clusters = dict()
-        for k, cluster in self.roomwide_sublvl_clusters.iteritems():
-            for k2, cluster_old in old_sublvl_clusters.iteritems():
-                if cluster == cluster_old:
-                    _h_copy.roomwide_sublvl_clusters[k] = new_sublvl_clusters[k2]
-                    break
+        _h_copy.roomwide_sublvl_clusters = {k: cluster.deep_copy() for k, cluster in self.roomwide_sublvl_clusters.iteritems()}
 
         # store the prior probability
         _h_copy.roomwide_prior_log_prob = self.roomwide_prior_log_prob
@@ -1003,14 +997,6 @@ cdef class HierarchicalMappingCluster(object):
             for sublvl_clustering in self.sublvl_clusters]
         _h_copy.sublvl_cluster_assignments = [ {c:k for c, k in assignments.iteritems()}
             for assignments in self.sublvl_cluster_assignments]
-        
-        _h_copy.sublvl_clusters = [dict() for ii in range(self.n_sublvls)]
-        for ii in range(self.n_sublvls):
-            for k, cluster in self.sublvl_clusters[ii].iteritems():
-                for k2, cluster_old in self.roomwide_sublvl_clusters.iteritems():
-                    if cluster == cluster_old:
-                        _h_copy.sublvl_clusters[ii][k] = _h_copy.roomwide_sublvl_clusters[k2]
-                        break
         
         _h_copy.sublvl_wide_prior_log_prob = np.copy(self.sublvl_wide_prior_log_prob)
         _h_copy.tot_sublvl_wide_prior_log_prob = self.tot_sublvl_wide_prior_log_prob
@@ -1065,7 +1051,7 @@ cdef class HierarchicalMappingHypothesis(object):
         self.sublvl_CRP_prior_log_prob = 1./3
         
         self.prior_log_prob = 1.
-       
+        
         
     def add_new_room_context_assignment(self, int c, int k):
 
@@ -1092,12 +1078,12 @@ cdef class HierarchicalMappingHypothesis(object):
         if c in env_assignments.keys():
             k = env_assignments[c]
             
-            # check if cluster "k" has already been assigned new cluster
-            if k not in self.sublvl_clusters.keys():
+            # check if cluster "k" is already been assigned new cluster
+            if k not in self.sublvl_assignments.values():
                 # if not, add a new mapping cluster
                 self.sublvl_clusters[k] = MappingCluster(self.n_primitive_actions, self.n_abstract_actions,
                                               self.mapping_prior)
-                
+
             self.sublvl_assignments[c] = k
             self.sublvl_prior_log_prob = get_prior_log_probability(self.sublvl_assignments, self.alpha)
             sublvl_cluster = self.sublvl_clusters[k]
@@ -1194,19 +1180,17 @@ cdef class HierarchicalMappingHypothesis(object):
         cdef MappingCluster cluster
         
         
-        # environment-wide CRP for sublvl clusters
-        _h_copy.sublvl_assignments = {c:k for c, k in self.sublvl_assignments.iteritems()}
-        _h_copy.sublvl_clusters = {k: cluster.deep_copy() for k, cluster in self.sublvl_clusters.iteritems()}
-
         # initialize the room clusters
-        old_sublvl_clusters = self.sublvl_clusters
-        new_sublvl_clusters = _h_copy.sublvl_clusters
-        _h_copy.room_clusters = {k: RoomCluster.deep_copy(old_sublvl_clusters, new_sublvl_clusters) for k, RoomCluster in self.room_clusters.iteritems()}
         _h_copy.room_cluster_assignments = {c:k for c,k in self.room_cluster_assignments.iteritems()}
+        _h_copy.room_clusters = {k: RoomCluster.deep_copy() for k, RoomCluster in self.room_clusters.iteritems()}
         _h_copy.room_experience = [(k,a,aa) for k,a,aa in self.room_experience]
         
         # store the prior probability
         _h_copy.room_prior_log_prob = self.room_prior_log_prob
+
+        # environment-wide CRP for sublvl clusters
+        _h_copy.sublvl_assignments = {c:k for c, k in self.sublvl_assignments.iteritems()}
+        _h_copy.sublvl_clusters = {k: cluster.deep_copy() for k, cluster in self.sublvl_clusters.iteritems()}
 
         # store the prior probability
         _h_copy.sublvl_prior_log_prob = self.sublvl_prior_log_prob
