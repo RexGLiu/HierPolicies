@@ -14,6 +14,7 @@ from model import simulate_one
 
 import numpy as np
 import pandas as pd
+import pickle
 
 # define all of the task parameters
 grid_world_size = (6, 6)
@@ -91,11 +92,13 @@ results_fl = [None] * n_local_sims
 results_mx = [None] * n_local_sims
 results_h = [None] * n_local_sims
 
+clusterings_h = [None] * n_local_sims
+
 for kk in range(n_local_sims):
     sim_number = sim_offset+kk
     
     task = make_task(**task_kwargs)
-    results_h[kk] = simulate_one(HierarchicalAgent, sim_number, task, agent_kwargs=hier_agent_kwargs)
+    results_h[kk], clusterings_h[kk] = simulate_one(HierarchicalAgent, sim_number, task, agent_kwargs=hier_agent_kwargs)
 
     task.reset()
     results_mx[kk] = simulate_one(MetaAgent, sim_number, task, agent_kwargs=meta_kwargs)
@@ -118,6 +121,16 @@ if rank == 0:
     results_h = pd.concat(results_h)
     results_h['Model'] = ['Hierarchical'] * len(results_h)
     del _results_h
+
+_clusterings_h = comm.gather(clusterings_h, root=0)
+if rank == 0:
+    clusterings_h = []
+    for clusterings in _clusterings_h:
+        clusterings_h += clusterings
+    
+    pickle.dump( clusterings_h, open( "JointEnvClusterings_h.pkl", "wb" ) )
+    del _clusterings_h, clusterings_h
+
 
 _results_mx = comm.gather(results_mx, root=0)
 if rank == 0:
