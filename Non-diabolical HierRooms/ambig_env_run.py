@@ -1,13 +1,12 @@
 import pandas as pd
-
-from model.comp_rooms import make_task
-from model.comp_rooms_agents import HierarchicalAgent, IndependentClusterAgent, FlatAgent#, JointClusteringAgent
-
 from tqdm import tqdm
-
 import numpy as np
 
-seed = 1
+from model.comp_rooms import make_task
+from model.comp_rooms_agents import HierarchicalAgent, IndependentClusterAgent, FlatAgent
+from model.generate_env import generate_room_args as generate_room_args
+
+seed = 500
 np.random.seed(seed)
 
 # define all of the task parameters
@@ -27,7 +26,6 @@ sublvl_rewards_idx =   np.array([0,0,0,1,1,1,1,2,2,3,3,3,2,2,3,3])
 sublvl1_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*3)))
 sublvl2_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*3)))
 sublvl3_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*3)))
-
 
 
 # specify mappings, door sequences, and rewards for each room and its sublevels
@@ -55,7 +53,8 @@ task_kwargs = dict(context_balance=context_balance,
                    sublvl3_mappings_idx=sublvl3_mappings_idx,
                    hazard_rates=hazard_rates,
                    grid_world_size=grid_world_size,
-                   mutual_info = True
+                   calc_info_measures = False,
+                   generate_room_args = generate_room_args
                   )
 
 
@@ -74,14 +73,10 @@ def sim_task(task_list, desc='Running Task'):
     clusterings_hc = []
 
     print 'Hierarchical'
-    generate_kwargs = {
-        'evaluate': False,
-    }
-
     for ii in tqdm(range(n_sims), desc=desc):
         task = task_list[ii]
         agent = HierarchicalAgent(task, inv_temp=inv_temp)
-        results_hc, _clusterings_hc = agent.navigate_rooms(**generate_kwargs)
+        results_hc, _clusterings_hc = agent.navigate_rooms()
         results_hc[u'Model'] = 'Hierarchical'
         results_hc['Iteration'] = [ii] * len(results_hc)
         results.append(results_hc)
@@ -89,30 +84,22 @@ def sim_task(task_list, desc='Running Task'):
 
 
     print 'Independent'
-    generate_kwargs = {
-        'evaluate': False,
-    }
-
     for ii in tqdm(range(n_sims), desc=desc):
         task = task_list[ii]
         task.reset()
         agent = IndependentClusterAgent(task, alpha=alpha, inv_temp=inv_temp)
-        results_ic, _ = agent.navigate_rooms(**generate_kwargs)
+        results_ic, _ = agent.navigate_rooms()
         results_ic[u'Model'] = 'Independent'
         results_ic['Iteration'] = [ii] * len(results_ic)
         results.append(results_ic)
 
 
     print 'Flat'
-    generate_kwargs = {
-        'evaluate': False,
-    }
-
     for ii in tqdm(range(n_sims), desc=desc):
         task = task_list[ii]
         task.reset()
         agent = FlatAgent(task, inv_temp=inv_temp)
-        results_fl, _ = agent.navigate_rooms(**generate_kwargs)
+        results_fl, _ = agent.navigate_rooms()
         results_fl[u'Model'] = 'Flat'
         results_fl['Iteration'] = [ii] * len(results_fl)
         results.append(results_fl)

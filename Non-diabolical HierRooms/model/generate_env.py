@@ -112,9 +112,7 @@ def generate_room_args(actions, n_a, goal_ids, goal_coods, room_mappings_idx, do
     
     n_rooms = len(room_mappings_idx)
 
-
-    # generate dictionary of mappings for each room
-    # to encourage transfer, we'll use same set of mappings for room and sublvls
+    # generate dictionary of mappings for upper levels and each sublvl
     mappings_set = generate_mappings_set(n_a)
     sublvl1_mappings_set = mappings_set[:,np.random.permutation(n_a)]
     sublvl2_mappings_set = mappings_set[:,np.random.permutation(n_a)]
@@ -142,9 +140,10 @@ def generate_room_args(actions, n_a, goal_ids, goal_coods, room_mappings_idx, do
     return [room_mappings, start_location, door_locations, sublvl_mappings, subreward_function, sublvl_door_locations]
     
     
-def generate_room_args_indep(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
+def generate_room_args_common_mapping_sets(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
              sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx, replacement=False):
     # same as generate_room_args except sublvl mapping sets are identical to room mapping sets
+    # doors do not repeat; subgoals may or may not repeat depending on 'replacement' parameter
 
     n_rooms = len(room_mappings_idx)
     n_sublvl = 3
@@ -178,23 +177,15 @@ def generate_room_args_indep(actions, n_a, goal_ids, goal_coods, room_mappings_i
     return [room_mappings, start_location, door_locations, sublvl_mappings, subreward_function, sublvl_door_locations]    
 
 
-def generate_room_args_indep2(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
+def generate_room_args_repeated_goals(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
              sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx, replacement=True):
     # same as generate_room_args except sublvl mapping sets are identical to room mapping sets
+    # both doors and subgoals allowed to repeat in sequences if 'replacement == True'
     
     
     # randomise order in which agent must navigate rooms
     n_rooms = len(room_mappings_idx)
     n_sublvl = 3
-    room_order = np.random.permutation(n_rooms)
-
-    room_mappings_idx = room_mappings_idx[room_order]
-    door_sequences_idx = door_sequences_idx[room_order]
-    sublvl_rewards_idx = sublvl_rewards_idx[room_order]
-    sublvl1_mappings_idx = sublvl1_mappings_idx[room_order]
-    sublvl2_mappings_idx = sublvl2_mappings_idx[room_order]
-    sublvl3_mappings_idx = sublvl3_mappings_idx[room_order]
-
 
     # generate dictionary of mappings for each room
     # to encourage transfer, we'll use same set of mappings for room and sublvls
@@ -225,24 +216,15 @@ def generate_room_args_indep2(actions, n_a, goal_ids, goal_coods, room_mappings_
     return [room_mappings, start_location, door_locations, sublvl_mappings, subreward_function, sublvl_door_locations]    
 
 
-def generate_room_args_indep3(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
+def generate_room_args_repeated_doors(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
              sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx):
     # same as generate_room_args except sublvl mapping sets are identical to room mapping sets
-    # no structure in door sequences but structure in subgoal sequences
+    # doors repeated in sequence; subgoals do not repeat
     
     
     # randomise order in which agent must navigate rooms
     n_rooms = len(room_mappings_idx)
     n_sublvl = 3
-    room_order = np.random.permutation(n_rooms)
-
-    room_mappings_idx = room_mappings_idx[room_order]
-    door_sequences_idx = door_sequences_idx[room_order]
-    sublvl_rewards_idx = sublvl_rewards_idx[room_order]
-    sublvl1_mappings_idx = sublvl1_mappings_idx[room_order]
-    sublvl2_mappings_idx = sublvl2_mappings_idx[room_order]
-    sublvl3_mappings_idx = sublvl3_mappings_idx[room_order]
-
 
     # generate dictionary of mappings for each room
     # to encourage transfer, we'll use same set of mappings for room and sublvls

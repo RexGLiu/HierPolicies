@@ -293,8 +293,6 @@ cdef class GoalHypothesis(object):
 
         cdef double [:] rew_func = cluster.get_goal_pmf()
         goal_probability = np.copy(rew_func)
-#        for g in range(self.n_goals):
-#            goal_probability[g] = rew_func[g]
         return goal_probability
 
     def get_assignments(self):
@@ -418,7 +416,6 @@ cdef class DoorSeqCluster(object):
         
         
 cdef class RoomCluster(object):
-
     cdef int n_goals, n_primitive_actions, n_abstract_actions
     cdef double gamma, iteration_criterion, inverse_temperature, alpha1
     cdef dict goal_assignments, goal_clusters, mapping_assignments, mapping_clusters
@@ -1458,12 +1455,6 @@ cdef list augment_CRP_with_tuple(dict old_assignments, tuple new_context):
     cdef list new_assignments = [[{new_context: k}] for k in range(n_clusters)]
     return new_assignments
     
-
-
-
-
-
-
 
 cdef class UpperDoorHypothesis(object):
     cdef int n_goals, n_sublvls

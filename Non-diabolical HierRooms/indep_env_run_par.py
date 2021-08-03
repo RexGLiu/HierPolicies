@@ -1,16 +1,12 @@
 from mpi4py import MPI
 
 import pandas as pd
-
-from datetime import datetime
-import random
+import numpy as np
+import pickle
 
 from model.comp_rooms import make_task
-from model.comp_rooms_agents import HierarchicalAgent, IndependentClusterAgent, FlatAgent#, JointClusteringAgent
-
-import numpy as np
-
-import pickle
+from model.comp_rooms_agents import HierarchicalAgent, IndependentClusterAgent, FlatAgent
+from model.generate_env import generate_room_args_repeated_goals as generate_room_args
 
 n_sims = 50
 
@@ -40,6 +36,7 @@ else:
 seed = comm.scatter(rand_seeds, root=0)
 np.random.seed(seed)
 
+
 # generate list of tasks for each sim and scatter data
 # master process
 if rank == 0:
@@ -47,7 +44,7 @@ if rank == 0:
     rewards_idx  = [0]*8 + [1]*5 + [2]*2 + [3]
 
     task_list = [0]*n_sims
-    task_mutual_info = [0]*n_sims
+    task_info_measures = [0]*n_sims
     for ii in range(n_sims):
         # specify mappings, door sequences, and rewards for each room and its sublevels
         room_mappings_idx    = np.array(np.random.permutation(mappings_idx))
@@ -73,12 +70,13 @@ if rank == 0:
                    sublvl3_mappings_idx=sublvl3_mappings_idx,
                    hazard_rates=hazard_rates,
                    grid_world_size=grid_world_size,
-                   mutual_info = True,
-                   replacement = True
+                   calc_info_measures = True,
+                   replacement = True,
+                   generate_room_args = generate_room_args
                   )
 
 
-        task_list[ii], task_mutual_info[ii] = make_task(**task_kwargs)
+        task_list[ii], task_info_measures[ii] = make_task(**task_kwargs)
 
     q, r = divmod(n_sims, n_procs)
     counts = [q + 1 if p < r else q for p in range(n_procs)]    
@@ -100,10 +98,6 @@ task_list = comm.scatter(task_list, root=0)
 # Run sims
 
 room_kwargs = dict()
-generate_kwargs = {
-    'evaluate': False,
-}
-
 
 q, r = divmod(n_sims, n_procs)
 if rank < r:
@@ -120,7 +114,7 @@ for kk, task in enumerate(task_list):
 
     task.reset()
     agent = FlatAgent(task, inv_temp=inv_temp)
-    _results, _ = agent.navigate_rooms(**generate_kwargs)
+    _results, _ = agent.navigate_rooms()
     _results[u'Model'] = 'Flat'
     _results['Simulation Number'] = [sim_number] * len(_results)
     results_fl.append(_results)
@@ -133,7 +127,7 @@ for kk, task in enumerate(task_list):
 
     task.reset()
     agent = HierarchicalAgent(task, inv_temp=inv_temp)
-    _results, _clusterings_hc = agent.navigate_rooms(**generate_kwargs)
+    _results, _clusterings_hc = agent.navigate_rooms()
     _results[u'Model'] = 'Hierarchical'
     _results['Simulation Number'] = [sim_number] * len(_results)
     results_hc.append(_results)
@@ -146,7 +140,7 @@ for kk, task in enumerate(task_list):
 
     task.reset()
     agent = IndependentClusterAgent(task, inv_temp=inv_temp)
-    _results, _ = agent.navigate_rooms(**generate_kwargs)
+    _results, _ = agent.navigate_rooms()
     _results[u'Model'] = 'Independent'
     _results['Simulation Number'] = [sim_number] * len(_results)
     results_ic.append(_results)
@@ -177,4 +171,4 @@ if rank == 0:
     
     results.to_pickle("./HierarchicalRooms_indep.pkl")
     pickle.dump( clusterings_hc, open( "HierarchicalRoomsClusterings_indep_hc.pkl", "wb" ) )
-    pickle.dump( task_mutual_info, open ("TaskMutualInfo_indep_hc.pkl", "wb"))
+    pickle.dump( task_info_measures, open ("TaskInfoMeasures_indep_hc.pkl", "wb"))

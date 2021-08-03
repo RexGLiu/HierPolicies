@@ -15,23 +15,6 @@ def sample_cmf(cmf):
     return int(np.sum(np.random.rand() > cmf))
 
 
-def make_q_primitive(q_abstract, mapping):
-    q_primitive = np.zeros(8)
-    n, m = np.shape(mapping)
-    for aa in range(m):
-        for a in range(n):
-            q_primitive[a] += q_abstract[aa] * mapping[a, aa]
-    return q_primitive
-
-
-def kl_divergence(q, p):
-    d = 0
-    for q_ii, p_ii in zip(q, p):
-        if p_ii > 0:
-            d += p_ii * np.log2(p_ii/q_ii)
-    return d
-
-
 class MultiStepAgent(object):
 
     def __init__(self, task):
@@ -65,19 +48,13 @@ class MultiStepAgent(object):
     def update_goal_values(self, c, seq, goal, r):
         pass
 
-    def prune_hypothesis_space(self, threshold=50.):
-        pass
-
     def resample_hypothesis_space(self, n_particles):
         pass
 
     def augment_assignments(self, context):
         pass
 
-    def count_hypotheses(self):
-        return 1
-
-    def navigate_rooms(self, evaluate=True, debug=False, prunning_threshold=None, comm=None):
+    def navigate_rooms(self):
         
         # initialize variables; index 0 corresponds to total in room, including sublvls
         step_counter = np.zeros((2*self.task.n_doors, self.task.n_trials))
@@ -88,11 +65,6 @@ class MultiStepAgent(object):
         ii = 0
         min_particles = 100
         max_particles = 10000
-        
-        if comm is not None:
-            rank = comm.Get_rank()
-        else:
-            rank = None
 
         if isinstance(self,HierarchicalAgent):
             clusterings = {
@@ -152,8 +124,6 @@ class MultiStepAgent(object):
                 self.update_goal_values(c, seq, goal_id, r)
 
                 if r == 1:
-                    print rank, t, "Success", self.name, c, seq
-
                     if isinstance(self,HierarchicalAgent):
                         kk = np.argmax(self.log_belief)
                         h_MAP = self.hypotheses[kk]
@@ -167,7 +137,6 @@ class MultiStepAgent(object):
 
             # stop criterion
             if step_counter[0,t] > 2000:
-                print rank, t, "Stop", self.name
                 return None
 
 

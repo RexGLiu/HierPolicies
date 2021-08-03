@@ -1,16 +1,9 @@
 import numpy as np
 import copy
-from model.generate_env import generate_room_args_indep as generate_room_args
+# from model.generate_env import generate_room_args_indep as generate_room_args
 # from model.generate_env import generate_room_args
 
 """
-This is a variant of the grid worlds where goals are labeled and known to the agent, but their reward value
-is not. This allows dissociating a movements towards a goal from raw stimulus-response associations and
-can be used to force planning (both by moving the goals from trial to trial).
-
-Reward associations are meant to be constant for each goal, but the location is meant to change from trial
-to trial (here, GridWorld instance to GridWorld instance within a task)
-
 
 """
 
@@ -545,7 +538,7 @@ def randomize_order(context_balance, hazard_rates):
 def make_task(context_balance, n_actions, actions, goal_ids, goal_coords,
               room_mappings_idx, door_sequences_idx, sublvl_rewards_idx,
               sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx,
-              hazard_rates, grid_world_size, list_walls=None, mutual_info = False,
+              hazard_rates, grid_world_size, generate_room_args, list_walls=None, calc_info_measures = False,
               replacement = False):
     
     [room_mappings, _, door_locations, sublvl_mappings, 
@@ -578,22 +571,27 @@ def make_task(context_balance, n_actions, actions, goal_ids, goal_coords,
     args = [rescaled_list_context, list_room_mappings, list_door_locations, list_sublvl_mappings, list_subreward_function, list_sublvl_door_locations]
     kwargs = dict(list_walls=list_walls, grid_world_size=grid_world_size)
     
-    if mutual_info:
-        task_mutual_info = compute_task_mutual_info(*args)
-        return Task(*args, **kwargs), task_mutual_info
+    if calc_info_measures:
+        task_info_measures = compute_task_info_measures(*args)
+        return Task(*args, **kwargs), task_info_measures
     else:
         return Task(*args, **kwargs)
 
 
-def compute_task_mutual_info(list_context, room_mappings, 
+def compute_task_info_measures(list_context, room_mappings, 
                              list_door_locations, list_sublvl_mappings, 
                              list_subreward_function, list_sublvl_door_locations):
+    # function computes a variety of info statistics stored in a dict
+    # including mutual info between sublvl mappings x subgoals, upper level mappings x door sequences,
+    # upper mappings x sublvl goals, upper mapping x individual doors,
+    # cumulative info of door sequences (conditional & unconditional, normalised & unnormalised)
+    
     n_rooms = len(room_mappings)
     n_sublvls = len(list_sublvl_mappings[0])
     
     possible_sublvl_rewards = list_subreward_function[0]
     
-    task_mutual_info = {}
+    task_info_measures = {}
     
     # compute mutual info between sublvl goals and mappings
     sublvl_mappings = np.array([list_sublvl_mappings[ii][jj] for ii in range(n_rooms) for jj in range(n_sublvls)])
@@ -613,7 +611,7 @@ def compute_task_mutual_info(list_context, room_mappings,
     for ii, reward_fn in enumerate(possible_sublvl_rewards):
         sublvl_rewards_idx[sublvl_rewards == reward_fn] = ii
         
-    task_mutual_info['sublvl'] = sequential_mutual_info(sublvl_mappings_idx, sublvl_rewards_idx)
+    task_info_measures['sublvl'] = sequential_mutual_info(sublvl_mappings_idx, sublvl_rewards_idx)
     
     
     # compute mutual info between upper room mappings and door sequences
@@ -644,7 +642,7 @@ def compute_task_mutual_info(list_context, room_mappings,
     for seq in range(n_doors):
         door_seq_mutual_info[seq] = sequential_mutual_info(room_mappings_idx, door_seq_idx[seq])
         
-    task_mutual_info['upper room'] = door_seq_mutual_info
+    task_info_measures['upper room'] = door_seq_mutual_info
     
     
     
@@ -663,20 +661,20 @@ def compute_task_mutual_info(list_context, room_mappings,
     for seq in range(n_doors):
         seq_mutual_info[seq] = sequential_mutual_info(seq_idx[seq], seq_idx[seq+1])
     
-    task_mutual_info['upper sequences'] = door_seq_mutual_info
+    task_info_measures['upper sequences'] = door_seq_mutual_info
     
     
     # cumulative info gain of sequences
-    task_mutual_info['upper sequences cumulative info'] = compute_cum_info(seq_idx, normalise=False)
+    task_info_measures['upper sequences cumulative info'] = compute_cum_info(seq_idx, normalise=False)
 
     # normalised cumulative info gain of sequences
-    task_mutual_info['upper sequences normalised cumulative info'] = compute_cum_info(seq_idx, normalise=True)
+    task_info_measures['upper sequences normalised cumulative info'] = compute_cum_info(seq_idx, normalise=True)
     
     # conditional cumulative info gain of sequences
-    task_mutual_info['upper sequences conditional cum info'] = conditional_cum_info(seq_idx, normalise=False)
+    task_info_measures['upper sequences conditional cum info'] = conditional_cum_info(seq_idx, normalise=False)
 
     # normalised conditional cumulative info gain of sequences
-    task_mutual_info['upper sequences normalised conditional cum info'] = conditional_cum_info(seq_idx, normalise=True)
+    task_info_measures['upper sequences normalised conditional cum info'] = conditional_cum_info(seq_idx, normalise=True)
     
 
     # compute mutual info between upper room mappings and sublvl goal sequences
@@ -697,7 +695,7 @@ def compute_task_mutual_info(list_context, room_mappings,
     for seq in range(n_sublvls):
         goal_seq_mutual_info[seq] = sequential_mutual_info(room_mappings_idx, sublvl_rewards_idx[seq])
 
-    task_mutual_info['upper mapping x sublvl rewards'] = goal_seq_mutual_info
+    task_info_measures['upper mapping x sublvl rewards'] = goal_seq_mutual_info
     
     
     # compute mutual info between sublvl goals and mappings
@@ -705,7 +703,7 @@ def compute_task_mutual_info(list_context, room_mappings,
     for seq in range(n_sublvls):
         sublvl_mappings_seq = sublvl_mappings_idx[np.arange(len(sublvl_mappings_idx)) % n_sublvls == seq]
         sublvl_mutual_info[seq] = sequential_mutual_info(sublvl_mappings_seq, sublvl_rewards_idx[seq])
-    task_mutual_info['same sublvl mapping x goal'] = sublvl_mutual_info
+    task_info_measures['same sublvl mapping x goal'] = sublvl_mutual_info
 
 
     # compute mutual info between upper room doors and mappings
@@ -718,7 +716,7 @@ def compute_task_mutual_info(list_context, room_mappings,
     door_mutual_info = np.zeros( door_idx.shape )
     for seq in range(n_doors):
         door_mutual_info[seq] = sequential_mutual_info(room_mappings_idx, door_idx[seq])
-    task_mutual_info['upper mapping x individual door'] = door_mutual_info
+    task_info_measures['upper mapping x individual door'] = door_mutual_info
     
     
     # mutual info between set of all mappings and individual doors or sublvl goals
@@ -741,10 +739,10 @@ def compute_task_mutual_info(list_context, room_mappings,
     
     seq_subgoal_mutual_info, seq_doors_mutual_info = sequential_mutual_info2(complete_mappings_idx, sublvl_rewards_idx, door_seq_idx)
 
-    task_mutual_info['mappings x individual door'] = seq_doors_mutual_info
-    task_mutual_info['mappings x sublvl goal'] = seq_subgoal_mutual_info
+    task_info_measures['mappings x individual door'] = seq_doors_mutual_info
+    task_info_measures['mappings x sublvl goal'] = seq_subgoal_mutual_info
     
-    return task_mutual_info
+    return task_info_measures
 
 
 def sequential_mutual_info(X, Y):
@@ -797,7 +795,7 @@ def sequential_mutual_info(X, Y):
 
 
 def sequential_mutual_info2(mappings, subgoals, doors):
-    # used to compute sequential mutual info between goals or doors and environment-wide mappings
+    # used to compute sequential mutual info statistics between goals or doors and environment-wide mappings
     # doors has dims (n_doors, n_rooms)
     # mappings has dims n_rooms * (n_sublvls + 1)
     # subgoals has dims n_rooms * n_sublvls
@@ -891,6 +889,8 @@ def sequential_mutual_info2(mappings, subgoals, doors):
 
 
 def compute_cum_info(list_seq, normalise=True):
+    # computes cumulative info gain as each element in sequences of (mapping, door1, door2, door3, door4) revealed 
+    
     seq_len, n_seq = list_seq.shape
 
     list_unique = np.unique(list_seq, axis=1)
@@ -926,6 +926,8 @@ def compute_cum_info(list_seq, normalise=True):
 
 
 def conditional_cum_info(list_seq, normalise=True):
+    # computes cumulative info gain as each sequence element revealed, but conditioned on knowing mapping
+    
     conditions_set = np.unique(list_seq[0])
     seq_len, n_seq = list_seq.shape
     
@@ -939,34 +941,3 @@ def conditional_cum_info(list_seq, normalise=True):
 
     return conditional_info
 
-
-# def compute_cum_info(list_seq, normalise=True):
-#     cum_frac_info = compute_info_gain(list_seq)
-
-#     if normalise:
-#         normalisation = np.sum(cum_frac_info[:,0])
-#         if normalisation > 0:
-#             cum_frac_info = cum_frac_info/normalisation
-
-#     cum_frac_info = np.cumsum(cum_frac_info,axis=0)
-#     return cum_frac_info
-
-
-# def compute_info_gain(list_seq):
-#     seq_len, n_seq = list_seq.shape
-
-#     unique_seq = np.unique(list_seq, axis=1)
-#     n_unique = unique_seq.shape[1]
-#     prob_dict = { jj: np.sum(unique_seq[0] == jj) / float(n_unique) for jj in unique_seq[0] }
-
-#     seq_info_gain = np.zeros( list_seq.shape )
-#     for jj, prob in prob_dict.iteritems():
-#         seq_info_gain[ 0, list_seq[0] == jj ] = -np.log2(prob)
-    
-#     if seq_len > 1:
-#         for jj in unique_seq[0]:
-#             seq_idx = (list_seq[0] == jj)
-#             list_seq_subset = list_seq[ 1:, seq_idx ]
-#             seq_info_gain[ 1:, seq_idx ] = compute_info_gain(list_seq_subset)
-    
-#     return seq_info_gain

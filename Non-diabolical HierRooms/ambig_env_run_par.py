@@ -6,7 +6,7 @@ import pickle
 
 from model.comp_rooms import make_task
 from model.comp_rooms_agents import HierarchicalAgent, IndependentClusterAgent, FlatAgent
-from model.generate_env import generate_room_args_common_mapping_sets as generate_room_args
+from model.generate_env import generate_room_args as generate_room_args
 
 n_sims = 50
 
@@ -18,44 +18,6 @@ n_a = 8
 goal_ids = ["A","B","C","D"]
 goal_coords = [(1, 2), (2, 5), (3, 1), (4, 3)]
 
-
-# specify mappings, door sequences, and rewards for each room and its sublevels
-room_mappings_idx =    np.array([0]*4 + [1]*3 + [2]*9)
-door_sequences_idx =   np.array([0]*7 + [1]*3 + [2]*3 + [3]*3)
-sublvl_rewards_idx =   np.array([0]*7 + [1]*3 + [2]*3 + [3]*3)
-sublvl1_mappings_idx = np.array([3]*4 + [4]*3 + [5]*9)
-sublvl2_mappings_idx = np.array([6]*4 + [7]*3 + [5]*9)
-sublvl3_mappings_idx = np.array([1]*4 + [7]*3 + [2]*9)
-
-
-# room_mappings_idx =    np.array(range(4)*4)
-# door_sequences_idx =   np.array(range(4)*4)
-# sublvl_rewards_idx =   np.array(range(4)*4)
-# sublvl1_mappings_idx = np.array(range(4)*4)
-# sublvl2_mappings_idx = np.array(range(4)*4)
-# sublvl3_mappings_idx = np.array(range(4)*4)
-
-
-context_balance = [4] * (len(room_mappings_idx))
-hazard_rates = [0.5, 0.67, 0.67, 0.75, 1.0, 1.0]
-
-task_kwargs = dict(context_balance=context_balance, 
-                   n_actions=n_a,
-                   actions=actions,
-                   goal_ids=goal_ids,
-                   goal_coords=goal_coords,
-                   room_mappings_idx=room_mappings_idx,
-                   door_sequences_idx=door_sequences_idx,
-                   sublvl_rewards_idx=sublvl_rewards_idx,
-                   sublvl1_mappings_idx=sublvl1_mappings_idx,
-                   sublvl2_mappings_idx=sublvl2_mappings_idx,
-                   sublvl3_mappings_idx=sublvl3_mappings_idx,
-                   hazard_rates=hazard_rates,
-                   grid_world_size=grid_world_size,
-                   calc_info_measures = False,
-                   generate_room_args = generate_room_args
-                  )
-
 alpha = 1.0
 inv_temp = 5.0
 
@@ -63,7 +25,6 @@ inv_temp = 5.0
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 n_procs = comm.Get_size()
-
 
 if rank == 0:
     seed = 65756
@@ -82,6 +43,43 @@ if rank == 0:
     task_list = [0]*n_sims
     task_info_measures = [0]*n_sims
     for ii in range(n_sims):
+        # specify mappings, door sequences, and rewards for each room and its sublevels
+        room_mappings_idx =    np.array([0,0,0,1,1,1,1,2,3,4,5,6,2,3,4,5])
+        door_sequences_idx =   np.array([0,0,0,1,1,1,1,2,2,2,2,2,3,3,3,3])
+        sublvl_rewards_idx =   np.array([0,0,0,1,1,1,1,2,2,3,3,3,2,2,3,3])
+        sublvl1_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*3)))
+        sublvl2_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*3)))
+        sublvl3_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*3)))
+
+
+        # room_mappings_idx =    np.array([0,0,0,1,1,1,1,2,3,4,5,6,2,3,4,5,6,2,3,4,5,6])
+        # door_sequences_idx =   np.array([0,0,0,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3])
+        # sublvl_rewards_idx =   np.array([0,0,0,1,1,1,1,2,2,2,2,2,3,3,3,3,3,2,3,2,3,2])
+        # sublvl1_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*5)))
+        # sublvl2_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*5)))
+        # sublvl3_mappings_idx = np.array([0,0,0,1,2,3,4] + list(np.random.permutation([5,6,7]*5)))
+
+
+        context_balance = [4] * (len(room_mappings_idx))
+        hazard_rates = [0.5, 0.67, 0.67, 0.75, 1.0, 1.0]
+
+        task_kwargs = dict(context_balance=context_balance, 
+                   n_actions=n_a,
+                   actions=actions,
+                   goal_ids=goal_ids,
+                   goal_coords=goal_coords,
+                   room_mappings_idx=room_mappings_idx,
+                   door_sequences_idx=door_sequences_idx,
+                   sublvl_rewards_idx=sublvl_rewards_idx,
+                   sublvl1_mappings_idx=sublvl1_mappings_idx,
+                   sublvl2_mappings_idx=sublvl2_mappings_idx,
+                   sublvl3_mappings_idx=sublvl3_mappings_idx,
+                   hazard_rates=hazard_rates,
+                   grid_world_size=grid_world_size,
+                   calc_info_measures = True,
+                   generate_room_args = generate_room_args
+                  )
+
         task_list[ii], task_info_measures[ii] = make_task(**task_kwargs)
 
     q, r = divmod(n_sims, n_procs)
@@ -102,7 +100,6 @@ task_list = comm.scatter(task_list, root=0)
 
 
 # Run sims
-
 room_kwargs = dict()
 
 q, r = divmod(n_sims, n_procs)
@@ -169,13 +166,14 @@ if rank == 0:
     results_ic = []
     for result in _results_ic:
         results_ic += result
-
+        
     clusterings_hc = []
     for clusterings in _clusterings_hc:
         clusterings_hc += clusterings
 
     results = pd.concat(results_hc + results_ic + results_fl) 
     
-    results.to_pickle("./HierarchicalRooms_joint.pkl")
-    pickle.dump( clusterings_hc, open( "HierarchicalRoomsClusterings_joint_hc.pkl", "wb" ) )
-    pickle.dump( task_info_measures, open ("TaskInfoMeasures_joint_hc.pkl", "wb"))
+    results.to_pickle("./HierarchicalRooms_ambig.pkl")
+    pickle.dump( clusterings_hc, open( "HierarchicalRoomsClusterings_ambig_hc.pkl", "wb" ) )
+    pickle.dump( task_info_measures, open ("TaskInfoMeasures_ambig_hc.pkl", "wb"))
+
