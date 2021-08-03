@@ -106,16 +106,16 @@ for kk in range(n_local_sims):
     results_h[kk], clusterings_h[kk] = simulate_one(HierarchicalAgent, sim_number, task, agent_kwargs=hier_agent_kwargs)
 
     task.reset()
-    results_mx[kk] = simulate_one(MetaAgent, sim_number, task, agent_kwargs=meta_kwargs)
+    results_mx[kk], _ = simulate_one(MetaAgent, sim_number, task, agent_kwargs=meta_kwargs)
 
     task.reset()
-    results_jc[kk] = simulate_one(JointClustering, sim_number, task, agent_kwargs=agent_kwargs)
+    results_jc[kk], _ = simulate_one(JointClustering, sim_number, task, agent_kwargs=agent_kwargs)
 
     task.reset()
-    results_ic[kk] = simulate_one(IndependentClusterAgent, sim_number, task, agent_kwargs=agent_kwargs)
+    results_ic[kk], _ = simulate_one(IndependentClusterAgent, sim_number, task, agent_kwargs=agent_kwargs)
 
     task.reset()
-    results_fl[kk] = simulate_one(FlatControlAgent, sim_number, task, agent_kwargs=agent_kwargs)
+    results_fl[kk], _ = simulate_one(FlatControlAgent, sim_number, task, agent_kwargs=agent_kwargs)
 
 
 _results_h = comm.gather(results_h, root=0)
