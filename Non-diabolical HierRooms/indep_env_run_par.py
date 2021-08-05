@@ -6,7 +6,7 @@ import pickle
 
 from model.comp_rooms import make_task
 from model.comp_rooms_agents import HierarchicalAgent, IndependentClusterAgent, FlatAgent
-from model.generate_env import generate_room_args_repeated_goals as generate_room_args
+from model.generate_env import generate_room_args_common_mapping_sets as generate_room_args
 
 n_sims = 50
 
@@ -20,6 +20,8 @@ goal_coords = [(1, 2), (2, 5), (3, 1), (4, 3)]
 
 alpha = 1.0
 inv_temp = 5.0
+min_particles = 100
+max_particles = 10000
 
 
 comm = MPI.COMM_WORLD
@@ -126,7 +128,7 @@ for kk, task in enumerate(task_list):
     sim_number = sim_offset+kk
 
     task.reset()
-    agent = HierarchicalAgent(task, inv_temp=inv_temp)
+    agent = HierarchicalAgent(task, inv_temp=inv_temp, min_particles=min_particles, max_particles=max_particles)
     _results, _clusterings_hc = agent.navigate_rooms()
     _results[u'Model'] = 'Hierarchical'
     _results['Simulation Number'] = [sim_number] * len(_results)
@@ -139,7 +141,7 @@ for kk, task in enumerate(task_list):
     sim_number = sim_offset+kk
 
     task.reset()
-    agent = IndependentClusterAgent(task, inv_temp=inv_temp)
+    agent = IndependentClusterAgent(task, inv_temp=inv_temp, min_particles=min_particles, max_particles=max_particles)
     _results, _ = agent.navigate_rooms()
     _results[u'Model'] = 'Independent'
     _results['Simulation Number'] = [sim_number] * len(_results)

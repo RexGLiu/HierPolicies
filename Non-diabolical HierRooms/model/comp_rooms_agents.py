@@ -17,11 +17,15 @@ def sample_cmf(cmf):
 
 class MultiStepAgent(object):
 
-    def __init__(self, task):
+    def __init__(self, task, min_particles, max_particles):
         self.task = task
         # assert type(self.task) is Task
         self.current_trial = 0
         self.results = []
+
+        self.min_particles = min_particles
+        self.max_particles = max_particles
+
 
     def get_action_pmf(self, location):
         assert type(location) is tuple
@@ -63,8 +67,6 @@ class MultiStepAgent(object):
         self.results = list()
 
         ii = 0
-        min_particles = 100
-        max_particles = 10000
 
         if isinstance(self,HierarchicalAgent):
             clusterings = {
@@ -102,9 +104,9 @@ class MultiStepAgent(object):
                 times_seen_room_ctx[subroom,c_idx] += 1
 
             if steps_in_room_ctx[subroom,c_idx] == 1:
-                self.resample_hypothesis_space(min_particles)
+                self.resample_hypothesis_space(self.min_particles)
                 self.augment_assignments(c)
-                self.resample_hypothesis_space(max_particles)
+                self.resample_hypothesis_space(self.max_particles)
 
             # select an action
             action = self.select_action(start_location)
@@ -174,7 +176,7 @@ class FlatAgent(MultiStepAgent):
 
     def __init__(self, task, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
                  mapping_prior=0.001, goal_prior=0.001):
-        super(FlatAgent, self).__init__(task)
+        super(FlatAgent, self).__init__(task, min_particles=None, max_particles=None)
 
         self.name = "Flat"
 
@@ -348,8 +350,8 @@ class FlatAgent(MultiStepAgent):
 class IndependentClusterAgent(FlatAgent):
 
     def __init__(self, task, alpha=1.0, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
-                 mapping_prior=0.001, goal_prior=0.001):
-        super(FlatAgent, self).__init__(task)
+                 mapping_prior=0.001, goal_prior=0.001, min_particles=100, max_particles=10000):
+        super(FlatAgent, self).__init__(task, min_particles, max_particles)
 
         self.name = "Independent"
         
@@ -599,8 +601,8 @@ class IndependentClusterAgent(FlatAgent):
 class HierarchicalAgent(IndependentClusterAgent):
     
     def __init__(self, task, alpha0=0.7, alpha1=1.0, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
-                 mapping_prior=0.001, goal_prior=0.001):
-        super(FlatAgent, self).__init__(task)
+                 mapping_prior=0.001, goal_prior=0.001, min_particles=100, max_particles=10000):
+        super(FlatAgent, self).__init__(task, min_particles, max_particles)
 
         self.name = "Hierarchical"
 

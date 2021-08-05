@@ -4,7 +4,7 @@ import numpy as np
 
 from model.comp_rooms import make_task
 from model.comp_rooms_agents import HierarchicalAgent, IndependentClusterAgent, FlatAgent
-from model.generate_env import generate_room_args_repeated_goals as generate_room_args
+from model.generate_env import generate_room_args_common_mapping_sets as generate_room_args
 
 seed = 500
 np.random.seed(seed)
@@ -20,6 +20,8 @@ goal_coords = [(1, 2), (2, 5), (3, 1), (4, 3)]
 
 alpha = 1.0
 inv_temp = 5.0
+min_particles = 100
+max_particles = 10000
 
 n_sims = 2
 
@@ -73,7 +75,7 @@ def sim_task(task_list, desc='Running Task'):
     print 'Hierarchical'
     for ii in tqdm(range(n_sims), desc=desc):
         task = task_list[ii]
-        agent = HierarchicalAgent(task, inv_temp=inv_temp)
+        agent = HierarchicalAgent(task, inv_temp=inv_temp, min_particles=min_particles, max_particles=max_particles)
         results_hc, _clusterings_hc = agent.navigate_rooms()
         results_hc[u'Model'] = 'Hierarchical'
         results_hc['Iteration'] = [ii] * len(results_hc)
@@ -85,7 +87,7 @@ def sim_task(task_list, desc='Running Task'):
     for ii in tqdm(range(n_sims), desc=desc):
         task = task_list[ii]
         task.reset()
-        agent = IndependentClusterAgent(task, alpha=alpha, inv_temp=inv_temp)
+        agent = IndependentClusterAgent(task, alpha=alpha, inv_temp=inv_temp, min_particles=min_particles, max_particles=max_particles)
         results_ic, _ = agent.navigate_rooms()
         results_ic[u'Model'] = 'Independent'
         results_ic['Iteration'] = [ii] * len(results_ic)

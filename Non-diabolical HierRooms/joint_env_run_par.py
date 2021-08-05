@@ -52,12 +52,14 @@ task_kwargs = dict(context_balance=context_balance,
                    sublvl3_mappings_idx=sublvl3_mappings_idx,
                    hazard_rates=hazard_rates,
                    grid_world_size=grid_world_size,
-                   calc_info_measures = False,
+                   calc_info_measures = True,
                    generate_room_args = generate_room_args
                   )
 
 alpha = 1.0
 inv_temp = 5.0
+min_particles = 100
+max_particles = 10000
 
 
 comm = MPI.COMM_WORLD
@@ -133,7 +135,7 @@ for kk, task in enumerate(task_list):
     sim_number = sim_offset+kk
 
     task.reset()
-    agent = HierarchicalAgent(task, inv_temp=inv_temp)
+    agent = HierarchicalAgent(task, inv_temp=inv_temp, min_particles=min_particles, max_particles=max_particles)
     _results, _clusterings_hc = agent.navigate_rooms()
     _results[u'Model'] = 'Hierarchical'
     _results['Simulation Number'] = [sim_number] * len(_results)
@@ -146,7 +148,7 @@ for kk, task in enumerate(task_list):
     sim_number = sim_offset+kk
 
     task.reset()
-    agent = IndependentClusterAgent(task, inv_temp=inv_temp)
+    agent = IndependentClusterAgent(task, inv_temp=inv_temp, min_particles=min_particles, max_particles=max_particles)
     _results, _ = agent.navigate_rooms()
     _results[u'Model'] = 'Independent'
     _results['Simulation Number'] = [sim_number] * len(_results)

@@ -1,7 +1,5 @@
 import numpy as np
 import copy
-# from model.generate_env import generate_room_args_indep as generate_room_args
-# from model.generate_env import generate_room_args
 
 """
 
