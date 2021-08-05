@@ -108,7 +108,7 @@ def generate_sublvl_reward_fn(sublvl_goals_list, sublvl_rewards_idx):
 
 
 def generate_room_args(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
-             sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx):
+             sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx, replacement=None):
     
     n_rooms = len(room_mappings_idx)
 
@@ -175,84 +175,5 @@ def generate_room_args_common_mapping_sets(actions, n_a, goal_ids, goal_coods, r
     start_location = {r: (0,0) for r in range(n_rooms)}
     
     return [room_mappings, start_location, door_locations, sublvl_mappings, subreward_function, sublvl_door_locations]    
-
-
-def generate_room_args_repeated_goals(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
-             sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx, replacement=True):
-    # same as generate_room_args except sublvl mapping sets are identical to room mapping sets
-    # both doors and subgoals allowed to repeat in sequences if 'replacement == True'
-    
-    
-    # randomise order in which agent must navigate rooms
-    n_rooms = len(room_mappings_idx)
-    n_sublvl = 3
-
-    # generate dictionary of mappings for each room
-    # to encourage transfer, we'll use same set of mappings for room and sublvls
-    mappings_set = generate_mappings_set(n_a)
-    sublvl1_mappings_set = mappings_set
-    sublvl2_mappings_set = mappings_set
-    sublvl3_mappings_set = mappings_set
-
-
-    room_mappings = generate_mapping_definitions(mappings_set, actions, room_mappings_idx)
-
-    sublvl_mappings_sets = (sublvl1_mappings_set, sublvl2_mappings_set, sublvl3_mappings_set)
-    sublvl_mappings_idx = (sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx)
-    sublvl_mappings = generate_sublvl_mappings(sublvl_mappings_sets, actions, sublvl_mappings_idx)
-
-
-    doors = assign_doors_to_coords(goal_ids, goal_coods)
-    door_locations = generate_door_locations(doors, door_sequences_idx, replacement)
-
-    sublvl_door_locations = {r: dict(zip(goal_ids, goal_coods)) for r in range(n_rooms)}
-    sublvl_goals_list = generate_sublvl_goals_list(goal_ids, replacement, n_sublvl)
-    subreward_function = generate_sublvl_reward_fn(sublvl_goals_list, sublvl_rewards_idx)
-    # in a given room, sublvls will have different goals from each other
-
-    # make it easy, have start locations be the same for each room
-    start_location = {r: (0,0) for r in range(n_rooms)}
-    
-    return [room_mappings, start_location, door_locations, sublvl_mappings, subreward_function, sublvl_door_locations]    
-
-
-def generate_room_args_repeated_doors(actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequences_idx, sublvl_rewards_idx, 
-             sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx):
-    # same as generate_room_args except sublvl mapping sets are identical to room mapping sets
-    # doors repeated in sequence; subgoals do not repeat
-    
-    
-    # randomise order in which agent must navigate rooms
-    n_rooms = len(room_mappings_idx)
-    n_sublvl = 3
-
-    # generate dictionary of mappings for each room
-    # to encourage transfer, we'll use same set of mappings for room and sublvls
-    mappings_set = generate_mappings_set(n_a)
-    sublvl1_mappings_set = mappings_set
-    sublvl2_mappings_set = mappings_set
-    sublvl3_mappings_set = mappings_set
-
-
-    room_mappings = generate_mapping_definitions(mappings_set, actions, room_mappings_idx)
-
-    sublvl_mappings_sets = (sublvl1_mappings_set, sublvl2_mappings_set, sublvl3_mappings_set)
-    sublvl_mappings_idx = (sublvl1_mappings_idx, sublvl2_mappings_idx, sublvl3_mappings_idx)
-    sublvl_mappings = generate_sublvl_mappings(sublvl_mappings_sets, actions, sublvl_mappings_idx)
-
-
-    doors = assign_doors_to_coords(goal_ids, goal_coods)
-    door_locations = generate_door_locations(doors, door_sequences_idx, True)
-
-    sublvl_door_locations = {r: dict(zip(goal_ids, goal_coods)) for r in range(n_rooms)}
-    sublvl_goals_list = generate_sublvl_goals_list(goal_ids, False, n_sublvl)
-    subreward_function = generate_sublvl_reward_fn(sublvl_goals_list, sublvl_rewards_idx)
-    # in a given room, sublvls will have different goals from each other
-
-    # make it easy, have start locations be the same for each room
-    start_location = {r: (0,0) for r in range(n_rooms)}
-    
-    return [room_mappings, start_location, door_locations, sublvl_mappings, subreward_function, sublvl_door_locations]    
-
 
 
