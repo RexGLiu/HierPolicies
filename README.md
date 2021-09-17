@@ -17,7 +17,7 @@ The code is split into three folders according to the type of task. `Flat Task` 
  - several miscellaneous scripts for analysing or plotting the generated data (see below for details).
 
 ## Analysis scripts
-Each of the task scripts above will save its results in a set of `pkl` files. The following scripts are intended to be run on these outputs and will generate the analyses and plots seen in the paper.
+Each of the task scripts above will save its results in a set of `.pkl` files. The following scripts are intended to be run on these outputs and will generate the analyses and plots seen in the paper.
 
 ### Flat Task
  - ```plot_results_joint_indep.py``` generates a series of plots for the tasks with joint and independent statistics.
