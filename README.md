@@ -1,9 +1,9 @@
 # Installation Instructions
-This codebase is written in Python 2.7 and requires Cython compilation prior to use. Cython requires a C compiler (gcc). If python 2.7, gcc, and pip are installed on your system, all python required dependencies can be installed with
- ```pip install -r requirements.txt ```
+This codebase is written in Python 2.7 and requires Cython compilation prior to use. Cython requires a C compiler (gcc). If python 2.7, gcc, and pip are installed on your system, all python required dependencies can be installed with\
+    ```pip install -r requirements.txt ```
  
-Each folder has a `setup.py` file for cython compilation. To compile the Cython code in each folder, enter the relevant folder and run
- ```python setup.py build_ext --inplace```
+Each folder has a `setup.py` file for cython compilation. To compile the Cython code in each folder, enter the relevant folder and run\
+    ```python setup.py build_ext --inplace```
 
 
 # Folders
