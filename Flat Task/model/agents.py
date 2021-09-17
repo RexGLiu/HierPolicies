@@ -38,6 +38,8 @@ class MultiStepAgent(object):
         assert type(self.task) is Task
         self.current_trial = 0
 
+        # p_max specifies what proportion of n_particles are to be the highest probability particles
+        # remainder are sampled randomly from the posterior
         assert p_max <= 1 and p_max >=0
         self.n_particles = n_particles
         self.n_max = int(n_particles*p_max)

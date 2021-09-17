@@ -9,7 +9,6 @@ Created on Sun Mar 22 18:56:09 2020
 import numpy as np
 import numpy.matlib
 from itertools import permutations, product
-from model.generate_env import *
 
 
 def generate_mappings_set(n_a):

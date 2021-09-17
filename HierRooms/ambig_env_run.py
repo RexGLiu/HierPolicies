@@ -46,7 +46,8 @@ n_sims = 2
 
 alpha = 1.0
 inv_temp = 5.0
-
+min_particles = 100
+max_particles = 20000
 
 
 def sim_task(room_args, desc='Running Task'):
@@ -58,7 +59,7 @@ def sim_task(room_args, desc='Running Task'):
     rooms_kwargs = dict()
     for ii in tqdm(range(n_sims), desc=desc):
         task = RoomsProblem(*room_args, **rooms_kwargs)
-        agent = HierarchicalAgent(task, inv_temp=inv_temp)
+        agent = HierarchicalAgent(task, inv_temp=inv_temp, min_particles=min_particles, max_particles=max_particles)
         results_hc, _clusterings_hc = agent.navigate_rooms()
         results_hc[u'Model'] = 'Hierarchical'
         results_hc['Iteration'] = [ii] * len(results_hc)
@@ -70,7 +71,7 @@ def sim_task(room_args, desc='Running Task'):
     rooms_kwargs = dict()
     for ii in tqdm(range(n_sims), desc=desc):
         task = RoomsProblem(*room_args, **rooms_kwargs)
-        agent = IndependentClusterAgent(task, alpha=alpha, inv_temp=inv_temp)
+        agent = IndependentClusterAgent(task, alpha=alpha, inv_temp=inv_temp, min_particles=min_particles, max_particles=max_particles)
         results_ic, _ = agent.navigate_rooms()
         results_ic[u'Model'] = 'Independent'
         results_ic['Iteration'] = [ii] * len(results_ic)

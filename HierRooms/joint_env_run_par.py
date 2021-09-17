@@ -31,6 +31,8 @@ task_args = [actions, n_a, goal_ids, goal_coods, room_mappings_idx, door_sequenc
 
 alpha = 1.0
 inv_temp = 5.0
+min_particles = 100
+max_particles = 10000
 
 
 comm = MPI.COMM_WORLD
@@ -121,7 +123,7 @@ results_hc = []
 clusterings_hc = []
 for sim_number, room_args in room_args_list:
     task = RoomsProblem(*room_args, **room_kwargs)
-    agent = HierarchicalAgent(task, inv_temp=inv_temp, max_steps=mean_steps_fl)
+    agent = HierarchicalAgent(task, inv_temp=inv_temp, max_steps=mean_steps_fl, min_particles=min_particles, max_particles=max_particles)
     _results, _clusterings_hc = agent.navigate_rooms()
     _results[u'Model'] = 'Hierarchical'
     _results['Iteration'] = [sim_number] * len(_results)
@@ -132,7 +134,7 @@ for sim_number, room_args in room_args_list:
 results_ic = []
 for sim_number, room_args in room_args_list:
     task = RoomsProblem(*room_args, **room_kwargs)
-    agent = IndependentClusterAgent(task, inv_temp=inv_temp, max_steps=mean_steps_fl)
+    agent = IndependentClusterAgent(task, inv_temp=inv_temp, max_steps=mean_steps_fl, min_particles=min_particles, max_particles=max_particles)
     _results, _ = agent.navigate_rooms()
     _results[u'Model'] = 'Independent'
     _results['Iteration'] = [sim_number] * len(_results)

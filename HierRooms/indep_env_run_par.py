@@ -19,6 +19,8 @@ goal_coods = [(1, 2), (2, 5), (3, 1), (4, 3)]
 
 alpha = 1.0
 inv_temp = 5.0
+min_particles = 100
+max_particles = 10000
 
 
 comm = MPI.COMM_WORLD
@@ -123,7 +125,7 @@ results_hc = []
 clusterings_hc = []
 for sim_number, room_args in room_args_list:
     task = RoomsProblem(*room_args, **room_kwargs)
-    agent = HierarchicalAgent(task, inv_temp=inv_temp, max_steps=mean_steps_fl)
+    agent = HierarchicalAgent(task, inv_temp=inv_temp, max_steps=mean_steps_fl, min_particles=min_particles, max_particles=max_particles)
     _results, _clusterings_hc = agent.navigate_rooms()
     _results[u'Model'] = 'Hierarchical'
     _results['Iteration'] = [sim_number] * len(_results)
@@ -134,7 +136,7 @@ for sim_number, room_args in room_args_list:
 results_ic = []
 for sim_number, room_args in room_args_list:
     task = RoomsProblem(*room_args, **room_kwargs)
-    agent = IndependentClusterAgent(task, inv_temp=inv_temp, max_steps=mean_steps_fl)
+    agent = IndependentClusterAgent(task, inv_temp=inv_temp, max_steps=mean_steps_fl, min_particles=min_particles, max_particles=max_particles)
     _results, _ = agent.navigate_rooms()
     _results[u'Model'] = 'Independent'
     _results['Iteration'] = [sim_number] * len(_results)
@@ -159,6 +161,6 @@ if rank == 0:
 
     results = pd.concat(results_hc + results_ic + results_fl) 
     
-    results.to_pickle("./HierarchicalRooms_indep_no_structure.pkl")
-    pickle.dump( clusterings_hc, open( "HierarchicalRoomsClusterings_indep_no_structure.pkl", "wb" ) )
-    pickle.dump( task_info_measures, open ("TaskMutualInfo_indep_no_structure.pkl", "wb"))
+    results.to_pickle("./HierarchicalRooms_indep.pkl")
+    pickle.dump( clusterings_hc, open( "HierarchicalRoomsClusterings_indep.pkl", "wb" ) )
+    pickle.dump( task_info_measures, open ("TaskInfoMeasures_indep.pkl", "wb"))

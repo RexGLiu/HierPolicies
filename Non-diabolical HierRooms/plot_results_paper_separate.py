@@ -141,7 +141,7 @@ fig_size = (5, 4.5)
 
 for name in name_list:
     print name
-    savefigs=True
+    savefigs=False
     
     sim_results = pd.read_pickle("./analyses/"+name+".pkl")
     sim_results = sim_results[sim_results['In goal']]
