@@ -30,3 +30,6 @@ Each of the task scripts above will save its results in a set of `.pkl` files. T
 
 ### Non-diabolical HierRooms
  - ```plot_results_paper_separate.py``` generates plots for the analyses of all non-diabolical tasks.
+
+# Acknowledgements
+This codebase has been adapted from Nick Franklin's "Independent Clustering" (https://github.com/nicktfranklin/IndependentClusters) and "Generalizing to Generalize" (https://github.com/nicktfranklin/GeneralizingToGeneralize) codebases.
