@@ -1,82 +1,35 @@
-# Compositional Clustering Demo
-
-This is a demonstration of a reinforcement learning model that
-generalizes components of task structure independently, for the forthcoming paper 
-*Compositional clutering in task structure learning* (Franklin & Frank, *Plos Comp Bio*, 2018). A preprint of 
-accompanying these demonstrations is available on bioRxiv: (https://www.biorxiv.org/content/early/2017/10/02/196923)
-  
-When an simple, artificial agent, such as a Q-learner, encounters a new
-task it is required to learn the properties of the task from scratch
-via trial and error. A more efficient approach is to generalize 
-skills and goals gained in a previous task to a new one. Previous human
-subject research has suggested that people generalize rules, or 
-task-sets, from one context to another (see Collins & Frank, Psych 
-Review, 2013). This behavior is consistent with generalization models
-that utilize a non-parametric Bayesian clustering algorithm that 
-treats contexts as belonging to a "set" of contexts that share the 
-same structure. While this is useful to explain behavior it is limited 
-computationally -- in ecological settings both people and artificial
-agents are likely to encounter contexts that share only a partial similarity 
-with each other.
-
-A more useful approach is to learn pieces of task structure and
-generalize them separately. This is particularly useful for
-*goal-directed* behavior, a hallmark of which is the ability to combine experiences to 
-generate a novel course of action in an unfamiliar environment.
-
-What task components are useful to generalize separately? One possible
-division of components is a division between reusable *skills* and 
-frequently encountered *goals*. Broadly speaking, skills reflect 
-structure in the outcomes of an agents actions whereas goals reflect 
-the desirability of various outcomes. In a reinforcement learning 
-setting, skills might be thought as generalized options
-
-
-This repository contains a simplified demonstration that parallels 
- work in human behavior. The repository, and the documentation, are
- currently a work in progress.
-
-#### Notebooks:
-* A demonstration of the model's performance can be found in the 
-notebook file `Demonstration for paper.ipynb`
-
-* A demonstration of a meta-agent that uses a reinforcement learning 
-process to arbitrate between Joint and Independent clustering can be
-found in the notebook file `Demonstration - Meta agent.ipynb`
-
-* An information theoretic analysis detailing under what conditions
- it is useful to cluster can be found in `Information Theoretic Analysis.ipynb`
-
-* A demonstration of a problem where the explorations compound
-with each new context can be found in `Rooms Problem.ipynb`
-
-* The code to simulate varying the parameters of the rooms problem
-can be found in `Rooms Growth.pynb`
-
-
-___
-
-
-### Installation Instructions
-
-This library run on Python 2.7 and unlike most python code, requries
- compilation with Cython before use. This requires a C compiler (gcc), 
- [for which you can find documentation here.](
- http://cython.readthedocs.io/en/latest/src/quickstart/install.html)  
+# Installation Instructions
+This codebase is written in Python 2.7 and requires Cython compilation prior to use. Cython requires a C compiler (gcc). If python 2.7, gcc, and pip are installed on your system, all python required dependencies can be installed with\
+    ```pip install -r requirements.txt ```
  
- If you have already installed python 2.7, pip and gcc on on your system
- , you can install cython and the other dependencies with 
- pip (if you don't already have them), run:  
- ```pip install -r requirements.txt ```
+Each folder has a `setup.py` file for cython compilation. To compile the Cython code in each folder, enter the relevant folder and run\
+    ```python setup.py build_ext --inplace```
 
- To compile the cython code, run:  
- ```python setup.py build_ext --inplace```  
-  
-### Files:
----
-* `model.gridworld.py`: Defines the task environments
-* `model.agents.py`: Defines the reinforcement learning agents. Core functions 
-    rely on cython
-* `model.crp.py`: Backend for Normative analysis
-* `model.cython_libary`: core functions optomized for speed with cython
-* `model.rooms_problem`, `model.rooms_agents`: special agents/models need for rooms simulation
+
+# Folders
+The code is split into three folders according to the type of task. `Flat Task` contains the code for all non-hierarchical tasks. `Diabolical HierRooms` contains the code for all diabolical versions of the hierarchical rooms task, and `Non-diabolical HierRooms` contains the code for the non-diabolical versions. Each folder contains its own version of the following scripts and libraries:
+ - ```indep_env_run.py``` runs the version of the task with independent statistics.
+ - ```joint_env_run.py``` runs the version of the task with joint statistics.
+ - ```ambig_env_run.py``` runs the version of the task with ambiguous statistics.
+ - each of these files have a ```*_par.py``` counterpart that runs a parallelised version of the script with `mpi4py`. These scripts are intended to be run on a cluster and were the ones used to generate the published data.
+ - ```setup.py``` for Cython compliation (see **Installation Instructions**).
+ - the library folder ```model``` contains the code for generating the environments as well as the clustering agents (e.g. independent, joint, hierarchical, meta, flat, etc) that run in them.
+ - several miscellaneous scripts for analysing or plotting the generated data (see below for details).
+
+## Analysis scripts
+Each of the task scripts above will save its results in a set of `.pkl` files. The following scripts are intended to be run on these outputs and will generate the analyses and plots seen in the paper.
+
+### Flat Task
+ - ```plot_results_joint_indep.py``` generates a series of plots for the tasks with joint and independent statistics.
+ - ```plot_results_ambig_env.py``` generates a series of plots for the task with mixed statistics.
+
+### Diabolical HierRooms
+ - ```plot_results_paper_separate.py``` generates bar and histogram plots showing either the average total steps taken or the distribution over the total steps taken in the independent, joint, and mixed statistics version on this task.
+ - ```plot_results_paper_doors.py``` generates a series of bar plots showing the probability of successful first visits for the doors and sublevel goals (i.e. the probability of successfully guessing the corrrect door/subgoal on the first attempt when visiting a level/sublevel for the first time).
+ - ```task_info_analysis_paper.py``` runs several statistical tests showing the correlation between info content in door sequences and probability of the hierarchical agent being more successful than the independent one in a first-visit to a level/sublevel. It also generates a plot showing this dependency between the probability and info content.
+
+### Non-diabolical HierRooms
+ - ```plot_results_paper_separate.py``` generates plots for the analyses of all non-diabolical tasks.
+
+# Acknowledgements
+This codebase has been adapted from Nick Franklin's "Independent Clustering" (https://github.com/nicktfranklin/IndependentClusters) and "Generalizing to Generalize" (https://github.com/nicktfranklin/GeneralizingToGeneralize) codebases.

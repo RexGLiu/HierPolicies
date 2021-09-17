@@ -4,3 +4,6 @@ pandas
 numpy
 seaborn
 tqdm
+mpi4py
+scipy
+sklearn
