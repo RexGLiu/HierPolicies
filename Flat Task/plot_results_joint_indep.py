@@ -10,11 +10,10 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from model import plot_results
 
 
-def plot_one_result(name, legend):
-    sim_results = pd.read_pickle("./data/"+name+".pkl")
+def plot_one_result(name, legend, savefig):
+    sim_results = pd.read_pickle("./analyses/"+name+".pkl")
 
     results_fl = sim_results[sim_results['Model'] == 'Flat']
     results_ic = sim_results[sim_results['Model'] == 'Independent']
@@ -61,7 +60,8 @@ def plot_one_result(name, legend):
     plt.tight_layout()
     plt.gca().set_yticks(range(0,50,10))
     plt.gca().set_ylim(0,40)
-    plt.savefig("figs/"+name+"_ctx.png", dpi=300, bbox_inches='tight')
+    if savefig:
+        plt.savefig("figs/"+name+"_ctx.png", dpi=300, bbox_inches='tight')
 
 
     plt.figure(figsize=(5, 4.5))
@@ -78,13 +78,14 @@ def plot_one_result(name, legend):
     plt.tight_layout()
     plt.gca().set_yticks(range(200,700,100))
     plt.gca().set_ylim(200,650)
-    plt.savefig("figs/"+name+"_violin.png", dpi=300, bbox_inches='tight')
+    if savefig:
+        plt.savefig("figs/"+name+"_violin.png", dpi=300, bbox_inches='tight')
 
 
-# filename_list = ["IndepEnvResults_300_fixed_Meta", "JointEnvResults_300_fixed_Meta"]
 filename_list = ["IndepEnvResults", "JointEnvResults"]
 n_files = len(filename_list)
 
+savefig = False
 
 for idx, name in enumerate(filename_list):
     print name
@@ -94,4 +95,4 @@ for idx, name in enumerate(filename_list):
     else:
         legend=False
     
-    plot_one_result(name, legend)
+    plot_one_result(name, legend, savefig)

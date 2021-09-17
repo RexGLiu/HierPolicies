@@ -131,7 +131,7 @@ Y = Y.reshape((Y.size,1))
 
 ########################### Analyses of fractional cumulative info
 
-##### t-test: info content in successful first-tries vs unsuccessful ones
+##### t-test: info content in trials where hierarchical agent was more successful vs trials where it wasn't
 
 # t-test per door
 for ii in range(n_doors):
@@ -149,7 +149,7 @@ t_val, p_val = ttest(frac_info_hits, frac_info_miss, equal_var=equal_var)
 print "Fractional cumulative info, all doors:", t_val, p_val
 
 
-##### Logistic regression statistics
+##### Logistic regression statistics: probability that hierarchical agent was more successful vs frac info content
 X = upper_seq_frac_info.flatten()
 X = zscore(X)
 X = X.reshape((X.size,1))
@@ -188,7 +188,7 @@ plt.show()
 
 ########################### Analyses of absolute cumulative info
 
-##### t-test: info content in successful first-tries vs unsuccessful ones
+##### t-test: info content in trials where hierarchical agent was more successful vs trials where it wasn't
 
 # t-test per door
 for ii in range(n_doors):
@@ -207,7 +207,7 @@ t_val, p_val = ttest(frac_info_hits, frac_info_miss, equal_var=equal_var)
 print "Absolute cumulative info, all doors:", t_val, p_val
 
 
-##### Logistic regression statistics
+##### Logistic regression statistics: probability that hierarchical agent was more successful vs abs info content
 X = upper_seq_info.flatten()
 X = X.reshape((X.size,1))
 X = zscore(X)
