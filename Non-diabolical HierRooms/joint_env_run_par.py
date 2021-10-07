@@ -59,7 +59,7 @@ task_kwargs = dict(context_balance=context_balance,
 alpha = 1.0
 inv_temp = 5.0
 min_particles = 100
-max_particles = 10000
+max_particles = 20000
 
 
 comm = MPI.COMM_WORLD
