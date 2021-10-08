@@ -47,6 +47,7 @@ def plot_one_result(name, legend, savefig):
         
     df1 = df1[(df1.Model=='Flat') | (~df1.Failed)]
 
+    sns.set_context('talk')
     plt.figure(figsize=(5, 4.5))
     with sns.axes_style('ticks'):
         sns.pointplot(x='Times Seen Context', y='n actions taken', data=sim_results[sim_results['In goal']], 
@@ -65,7 +66,6 @@ def plot_one_result(name, legend, savefig):
 
 
     plt.figure(figsize=(5, 4.5))
-    sns.set_context('talk')
     with sns.axes_style('ticks'):
         sns.violinplot(data=df1, x='Model', y='Cumulative Steps Taken', palette='Set2',
                     order=["Flat", "Independent", "Joint", "Hierarchical", "Meta"]
@@ -85,7 +85,7 @@ def plot_one_result(name, legend, savefig):
 filename_list = ["IndepEnvResults", "JointEnvResults"]
 n_files = len(filename_list)
 
-savefig = False
+savefig = True
 
 for idx, name in enumerate(filename_list):
     print name

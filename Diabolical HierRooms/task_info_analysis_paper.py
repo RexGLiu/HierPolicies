@@ -180,13 +180,13 @@ plt.bar(bar_centres, Y_frac, width = bar_width)
 plt.plot(X_test, clf.predict_proba(X_test)[:,1], 'navy')
 plt.xlabel("Z-scored fractional cumulative info")
 plt.ylabel("Prob[hier > indep]")
-# plt.savefig("figs/HierarchicalRooms_indep_Counts_vs_FracInfo.png", dpi=300, bbox_inches='tight')
+plt.savefig("figs/HierarchicalRooms_indep_Counts_vs_FracInfo.png", dpi=300, bbox_inches='tight')
 plt.show()
 
 
 
 
-########################### Analyses of absolute cumulative info
+########################### Analyses of absolute cumulative info ###########################
 
 ##### t-test: info content in trials where hierarchical agent was more successful vs trials where it wasn't
 

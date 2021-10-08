@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 def plot_one_result(sim_results, name, savefigs=False, legend=False):
     sim_results = sim_results[sim_results['Reward Collected']==1]
 
+    sns.set_context('talk')
     plt.figure(figsize=fig_size)
     with sns.axes_style('ticks'):
         sns.pointplot(x='Times Seen Context', y='n actions taken in room', data=sim_results[sim_results['Reward Collected']==1],
@@ -22,7 +23,7 @@ def plot_one_result(sim_results, name, savefigs=False, legend=False):
         plt.gca().set_ylim(0,170)
         plt.gca().set_yticks(range(0,170,40))
         if legend:
-            plt.legend(prop={'size': 14})
+            plt.legend()
         else:
             plt.gca().get_legend().remove()
 
@@ -42,7 +43,6 @@ def plot_one_result(sim_results, name, savefigs=False, legend=False):
 
 
     plt.figure(figsize=fig_size)
-    sns.set_context('talk')
     with sns.axes_style('ticks'):
         sns.violinplot(data=df1, x='Model', y='Cumulative Steps Taken', palette='Set2',
                     order=["Flat", "Independent", "Hierarchical"]
@@ -141,7 +141,7 @@ fig_size = (5, 4.5)
 
 for name in name_list:
     print name
-    savefigs=False
+    savefigs=True
     
     sim_results = pd.read_pickle("./analyses/"+name+".pkl")
     sim_results = sim_results[sim_results['In goal']]

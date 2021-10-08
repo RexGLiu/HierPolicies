@@ -23,6 +23,7 @@ def plot_one_result(savefig):
     X_first_by_upper_context = X_upper[X_upper['Times seen door context'] == times_ctx]
     X_first_by_sublvl = X_first_by_room[X_first_by_room['Room'] % 4 != 0]
 
+    sns.set_context('talk')
     
     plt.figure(figsize=fig_size)
     ax = plt.gca()
@@ -124,6 +125,6 @@ def plot_one_result(savefig):
 
 
 
-savefig=False
+savefig=True
 fig_size = (5, 4.5)
 plot_one_result(savefig)

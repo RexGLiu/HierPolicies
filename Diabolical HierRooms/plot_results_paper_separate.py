@@ -16,6 +16,8 @@ def plot_one_result(name, file_idx, savefig):
     results = pd.read_pickle("./analyses/HierarchicalRooms_"+name+".pkl")
     X0 = results[results['Success'] == True]
 
+    sns.set_context('talk')
+
     # plot histogram of cumulative steps
     plt.figure(figsize=fig_size)
     ax = plt.gca()
@@ -40,7 +42,7 @@ def plot_one_result(name, file_idx, savefig):
 
         plt.tight_layout()
         if savefig:
-            plt.savefig("figs/"+name+'_histo.png', dpi=300, bbox_inches='tight')    
+            plt.savefig("figs/HierRooms_"+name+'_histo.png', dpi=300, bbox_inches='tight')    
 
 
     # plot bar chart of cumulative steps
@@ -54,7 +56,7 @@ def plot_one_result(name, file_idx, savefig):
 
         plt.tight_layout()
         if savefig:
-            plt.savefig("figs/"+name+'_bar.png', dpi=300, bbox_inches='tight')    
+            plt.savefig("figs/HierRooms_"+name+'_bar.png', dpi=300, bbox_inches='tight')    
 
 
 
@@ -63,7 +65,7 @@ def plot_one_result(name, file_idx, savefig):
 name_list = ["indep", "joint", "ambig"]
 n_files = len(name_list)
 
-savefig = False
+savefig = True
 fig_size = (5, 4.5)
 
 for idx, name in enumerate(name_list):
