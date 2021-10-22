@@ -236,7 +236,10 @@ def plot_one_result(name, popular, savefig):
         sns.pointplot(x='Times Seen Context', y='n actions taken', data=test_joint_results[test_joint_results['In goal']],
                         units='Simulation Number', hue='Model', estimator=np.mean,
                         palette='Set2')
-        plt.gca().get_legend().remove()
+        if popular:
+            plt.legend()
+        else:
+            plt.gca().get_legend().remove()
         plt.ylim((0,45))
         sns.despine()
         if savefig:

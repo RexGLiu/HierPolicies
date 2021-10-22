@@ -34,8 +34,9 @@ def likelihood_ratio_test(X, y, model):
     full_intercept_log_ratio = intercept_log_likelihood - full_log_likelihood
     
     N_dof = model.coef_.size
-    p_intercept = 1-chi2.cdf(full_intercept_log_ratio, df=N_dof)
-    p_const = 1-chi2.cdf(intercept_const_log_ratio, df=1)
+    p_intercept = chi2.sf(full_intercept_log_ratio, df=N_dof)
+    p_const = chi2.sf(intercept_const_log_ratio, df=1)
+
     
     return full_intercept_log_ratio, intercept_const_log_ratio, p_intercept, p_const
 
