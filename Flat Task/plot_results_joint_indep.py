@@ -10,9 +10,10 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 
-def plot_one_result(name, legend, savefig):
+def plot_one_result(name, savefig):
     sim_results = pd.read_pickle("./analyses/"+name+".pkl")
 
     results_fl = sim_results[sim_results['Model'] == 'Flat']
@@ -47,20 +48,45 @@ def plot_one_result(name, legend, savefig):
         
     df1 = df1[(df1.Model=='Flat') | (~df1.Failed)]
 
+
+    bar_colours = sns.color_palette("Set2")[1:]
+    graph_colours = [(0,0,0)] + sns.color_palette("Set2")[1:]
+
     sns.set_context('talk')
-    plt.figure(figsize=(5, 4.5))
+    plt.figure(figsize=(5.5, 4.5))
     with sns.axes_style('ticks'):
-        sns.pointplot(x='Times Seen Context', y='n actions taken', data=sim_results[sim_results['In goal']], 
+        ax = sns.pointplot(x='Times Seen Context', y='n actions taken', data=sim_results[sim_results['In goal']], 
+                        hue_order=["Flat", "Independent", "Joint", "Hierarchical", "Meta"],
                         units='Simulation Number', hue='Model', estimator=np.mean,
-                        palette='Set2')
-        if legend:
-            plt.legend(prop={'size': 14})
-        else:
-            plt.gca().get_legend().remove()
+                        palette=graph_colours)
+        plt.gca().get_legend().remove()
         sns.despine()
     plt.tight_layout()
     plt.gca().set_yticks(range(0,50,10))
-    plt.gca().set_ylim(0,40)
+    plt.gca().set_ylim(0,45)
+
+    goal_data = sim_results[sim_results['In goal']]
+    goal_data = goal_data[goal_data['Times Seen Context'] == 1]
+    action_means = goal_data.groupby(['Times Seen Context', 'Model'])['n actions taken'].mean().reset_index()
+    flat_means = float(action_means[action_means['Model']=='Flat']['n actions taken'])
+
+    goal_data.loc[ goal_data['Times Seen Context']==1, 'n actions taken'] = flat_means - goal_data.loc[ goal_data['Times Seen Context']==1, 'n actions taken']
+    goal_data.loc[ goal_data['Times Seen Context']==1, 'n actions taken'] = goal_data.loc[ goal_data['Times Seen Context']==1, 'n actions taken'] / flat_means
+
+    goal_data = goal_data[goal_data['Model'] != 'Flat']
+    goal_data = goal_data.rename(columns = {'n actions taken': 'frac improvement'})
+    
+    axins = inset_axes(ax,  "50%", "40%" ,loc="upper right", borderpad=0)
+    sns.barplot(x='Model', y='frac improvement', data=goal_data,
+                        order=["Independent", "Joint", "Hierarchical", "Meta"],
+                        estimator=np.mean, palette=bar_colours, ax=axins)
+    axins.set(xticklabels=["Indep", "Joint", "Hier", "Meta"])
+    axins.set_xlabel("")
+    axins.set_ylabel("frac improvement", fontsize=13)
+    axins.tick_params(axis='both', which='major', labelsize=13)
+    axins.set_yticks(np.linspace(0.,0.4,5))
+    plt.ylim((0.,0.4))
+    sns.despine()
     if savefig:
         plt.savefig("figs/"+name+"_ctx.png", dpi=300, bbox_inches='tight')
 
@@ -90,9 +116,4 @@ savefig = True
 for idx, name in enumerate(filename_list):
     print name
     
-    if idx==0:
-        legend=True
-    else:
-        legend=False
-    
-    plot_one_result(name, legend, savefig)
+    plot_one_result(name, savefig)
