@@ -303,7 +303,7 @@ def plot_one_result(name, popular, savefig):
         plt.ylim((0,45))
         sns.despine()
 
-    goal_data = ambig_results[ambig_results['In goal']]
+    goal_data = indep_results[indep_results['In goal']]
     goal_data = goal_data[goal_data['Times Seen Context'] == 1]
     action_means = goal_data.groupby(['Times Seen Context', 'Model'])['n actions taken'].mean().reset_index()
     flat_means = float(action_means[action_means['Model']=='Flat']['n actions taken'])
@@ -322,8 +322,8 @@ def plot_one_result(name, popular, savefig):
     axins.set_xlabel("")
     axins.set_ylabel("frac improvement", fontsize=13)
     axins.tick_params(axis='both', which='major', labelsize=13)
-    axins.set_yticks(np.linspace(-0.2,0.4,4))
-    plt.ylim((-0.2,0.4))
+    axins.set_yticks(np.linspace(0.6,0.8,3))
+    plt.ylim((0.6,0.8))
     sns.despine()
     if savefig:
         plt.savefig("figs/"+name+'_ctx_indep.png', dpi=300, bbox_inches='tight')
