@@ -1,7 +1,6 @@
 cython
 numpy
 pandas
-numpy
 seaborn
 tqdm
 mpi4py
