@@ -5,5 +5,5 @@ seaborn
 tqdm
 mpi4py
 scipy
-sklearn
+scikit-learn
 matplotlib
