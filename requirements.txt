@@ -6,3 +6,4 @@ tqdm
 mpi4py
 scipy
 sklearn
+matplotlib
