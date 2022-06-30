@@ -61,6 +61,23 @@ def BIC(X,Y,model):
     return BIC_full, BIC_intercept, BIC_const
 
 
+def WelchSatterthwaitte(dataset1, dataset2):
+    N1 = dataset1.size
+    N2 = dataset2.size
+    nu1 = N1-1
+    nu2 = N2-1
+
+    s1 = dataset1.std()
+    s2 = dataset2.std()
+    
+    
+    S1 = s1*s1/N1
+    S2 = s2*s2/N2
+    
+    nu = (S1 + S2)*(S1 + S2)/(S1*S1/nu1 + S2*S2/nu2)
+    return nu
+
+
 # load data
 results = pd.read_pickle("./analyses/HierarchicalRooms_indep.pkl")
 task_info_measures = pd.read_pickle("./analyses/TaskInfoMeasures_indep.pkl")
@@ -141,13 +158,15 @@ for ii in range(n_doors):
     frac_info_hits = info_subset[diff_prob_success_subset > 0]
     frac_info_miss = info_subset[diff_prob_success_subset < 1]
     t_val, p_val = ttest(frac_info_hits, frac_info_miss, equal_var=equal_var)
-    print "Fractional cumulative info, door " + str(ii) + ": ", t_val, p_val
+    df = WelchSatterthwaitte(frac_info_hits, frac_info_miss)
+    print "Fractional cumulative info, door " + str(ii) + ": ", t_val, p_val/2, df
     
 # t-test across all doors combined
 frac_info_hits = upper_seq_frac_info[diff_prob_success > 0]
 frac_info_miss = upper_seq_frac_info[diff_prob_success < 1]
 t_val, p_val = ttest(frac_info_hits, frac_info_miss, equal_var=equal_var)
-print "Fractional cumulative info, all doors:", t_val, p_val
+df = WelchSatterthwaitte(frac_info_hits, frac_info_miss)
+print "Fractional cumulative info, all doors:", t_val, p_val/2, df
 
 
 ##### Logistic regression statistics: probability that hierarchical agent was more successful vs frac info content
@@ -198,14 +217,16 @@ for ii in range(n_doors):
     frac_info_hits = info_subset[diff_prob_success_subset > 0]
     frac_info_miss = info_subset[diff_prob_success_subset < 1]
     t_val, p_val = ttest(frac_info_hits, frac_info_miss, equal_var=equal_var)
-    print "Absolute cumulative info, door " + str(ii) + ": ", t_val, p_val
+    df = WelchSatterthwaitte(frac_info_hits, frac_info_miss)
+    print "Absolute cumulative info, door " + str(ii) + ": ", t_val, p_val/2, df
     
 
 # test across all doors combined
 frac_info_hits = upper_seq_info[diff_prob_success > 0]
 frac_info_miss = upper_seq_info[diff_prob_success < 1]
 t_val, p_val = ttest(frac_info_hits, frac_info_miss, equal_var=equal_var)
-print "Absolute cumulative info, all doors:", t_val, p_val
+df = WelchSatterthwaitte(frac_info_hits, frac_info_miss)
+print "Absolute cumulative info, all doors:", t_val, p_val/2, df
 
 
 ##### Logistic regression statistics: probability that hierarchical agent was more successful vs abs info content
