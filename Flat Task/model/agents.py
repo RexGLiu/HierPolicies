@@ -83,15 +83,27 @@ class MultiStepAgent(object):
             old_log_beliefs = old_log_beliefs[arg_idx]
             
             # randomly sample remaining elements according to their posterior
-            p = np.exp(old_log_beliefs)
+            p = old_log_beliefs - np.amax(old_log_beliefs)  # shift logits so that exp does not yield tiny values
+            p = np.exp(p)
             p = p/np.sum(p)
-            arg_idx = np.random.choice(n_beliefs-self.n_max, n_particles-self.n_max, p=p, replace=False)
+            idx_set = np.arange(n_beliefs-self.n_max)
+            assert p.size == idx_set.size
+            idx_set = idx_set[p>0]
+            p = p[p>0]
+
+            # check if number of particles with non-zero probability left still exceeds n_particles
+            if p.size > n_particles-self.n_max:
+                arg_idx = np.random.choice(idx_set, n_particles-self.n_max, p=p, replace=False)
+            else:
+                arg_idx = idx_set
+
             new_hypotheses = np.concatenate((new_hypotheses, old_hypotheses[arg_idx]))
             new_log_beliefs = np.concatenate((new_log_beliefs, old_log_beliefs[arg_idx]))
             
             return new_log_beliefs, new_hypotheses
-
-        return old_log_beliefs, old_hypotheses
+        
+        else:
+            return old_log_beliefs, old_hypotheses
 
     def augment_assignments(self, context):
         pass
@@ -138,10 +150,11 @@ class MultiStepAgent(object):
             if step_counter[t] == 1:
                 times_seen_ctx[c] += 1
 
-                self.resample_hypothesis_space()
+                # self.resample_hypothesis_space()
                 # entering a new context, augment for new context
                 if times_seen_ctx[c] == 1:
                     # augment the clustering assignments
+                    self.resample_hypothesis_space()
                     self.augment_assignments(c)
                     self.resample_hypothesis_space(10000)
 
@@ -205,6 +218,14 @@ class MultiStepAgent(object):
 
             results.append(pd.DataFrame(trial_dict, index=[ii]))
             
+            if step_counter[t] > 500:
+                print('Early termination', c, step_counter[t])
+
+                trial_dict['Success'] = False
+                results.append(pd.DataFrame(trial_dict, index=[ii]))
+                ii += 1
+                break
+
             # store clusterings if in goal
             if isinstance(self,HierarchicalAgent):
                 kk = np.argmax(self.log_belief)
