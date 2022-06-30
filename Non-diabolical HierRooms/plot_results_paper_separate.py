@@ -10,6 +10,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from scipy.stats import ttest_ind as ttest
 
 
 bar_colours = sns.color_palette("Set2")[1:]
@@ -55,6 +56,7 @@ def plot_one_result(sim_results, name, inset_yticks, savefigs=False):
         sns.despine()
         if savefigs:
             plt.savefig("figs/"+name+'_ctx.png', dpi=300, bbox_inches='tight')
+    stat_compare_agents('Independent', goal_data)
 
 
     df0 = sim_results[sim_results['Reward Collected']==1].groupby(['Model', 'Simulation Number']).sum()
@@ -80,6 +82,7 @@ def plot_one_result(sim_results, name, inset_yticks, savefigs=False):
         plt.tight_layout()
         if savefigs:
             plt.savefig("figs/"+name+'_violin.png', dpi=300, bbox_inches='tight')
+
 
 
     # plots across upper levels only
@@ -117,6 +120,7 @@ def plot_one_result(sim_results, name, inset_yticks, savefigs=False):
         sns.despine()
         if savefigs:
             plt.savefig("figs/"+name+'_upper_rooms_ctx.png', dpi=300, bbox_inches='tight')
+    stat_compare_agents('Independent', goal_data)
 
 
     df0 = sim_results[sim_results['Reward Collected']==1].groupby(['Model', 'Simulation Number']).sum()
@@ -142,6 +146,7 @@ def plot_one_result(sim_results, name, inset_yticks, savefigs=False):
         plt.tight_layout()
         if savefigs:
             plt.savefig("figs/"+name+'_upper_rooms_violin.png', dpi=300, bbox_inches='tight')
+
 
 
     # plots across sublevels only
@@ -180,6 +185,9 @@ def plot_one_result(sim_results, name, inset_yticks, savefigs=False):
         if savefigs:
             plt.savefig("figs/"+name+'_sublvls_ctx.png', dpi=300, bbox_inches='tight')
 
+    stat_compare_agents('Independent', goal_data)
+
+
     df0 = sim_results[sim_results['Reward Collected']==1].groupby(['Model', 'Simulation Number']).sum()
     df1 = pd.DataFrame()
     for m in set(sim_results.Model):
@@ -202,6 +210,40 @@ def plot_one_result(sim_results, name, inset_yticks, savefigs=False):
         sns.despine()
         if savefigs:
             plt.savefig("figs/"+name+'_sublvls_violin.png', dpi=300, bbox_inches='tight')
+            
+            
+def WelchSatterthwaitte(dataset1, dataset2):
+    N1 = dataset1.size
+    N2 = dataset2.size
+    nu1 = N1-1
+    nu2 = N2-1
+
+    s1 = dataset1.std()
+    s2 = dataset2.std()
+    
+    
+    S1 = s1*s1/N1
+    S2 = s2*s2/N2
+    
+    nu = (S1 + S2)*(S1 + S2)/(S1*S1/nu1 + S2*S2/nu2)
+    return nu
+
+
+def stat_compare_agents(baseline_model, goal_data):
+    # runs statistical test comparing each agent's performance against a baseline agent
+    
+    baseline_data = goal_data[goal_data['Model'] == baseline_model]['frac improvement']
+    
+    for m in set(goal_data.Model):
+        if m == baseline_model:
+            continue
+        
+        model_data = goal_data[goal_data['Model'] == m]['frac improvement']
+        t, p = ttest(model_data, baseline_data, equal_var=False)
+        df = WelchSatterthwaitte(model_data, baseline_data)
+        print(m, t, p/2, df, np.mean(model_data), np.mean(baseline_data), np.mean(model_data)-np.mean(baseline_data))
+    
+
 
 
 
@@ -211,7 +253,7 @@ fig_size = (5, 4.5)
 
 for name in name_list:
     print name
-    savefigs=True
+    savefigs=False
     
     sim_results = pd.read_pickle("./analyses/"+name+".pkl")
     sim_results = sim_results[sim_results['In goal']]
