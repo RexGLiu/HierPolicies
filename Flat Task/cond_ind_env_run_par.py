@@ -22,8 +22,15 @@ grid_world_size = (6, 6)
 # (left, right, up down)
 mapping_definitions = {
     0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
-    1: {4: u'up', 5: u'left', 6: u'right', 7: u'down'},
+    1: {1: u'left', 2: u'up', 3: u'down', 0: u'right'},
+    2: {2: u'left', 3: u'up', 0: u'down', 1: u'right'},
+    3: {3: u'left', 0: u'up', 1: u'down', 2: u'right'},
+    4: {4: u'left', 5: u'up', 6: u'down', 7: u'right'},
+    5: {5: u'left', 6: u'up', 7: u'down', 4: u'right'},
+    6: {6: u'left', 7: u'up', 4: u'down', 5: u'right'},
+    7: {7: u'left', 4: u'up', 5: u'down', 6: u'right'}
 }
+
 
 # define goal locations in (x, y) coordinate space
 goal_locations = {
@@ -35,8 +42,8 @@ goal_locations = {
 
 
 # assign goals and mappings to contexts
-context_goals = [0, 3, 0, 3]
-context_maps =  [0, 0, 1, 1]
+context_maps  = [0,1,2,3]*2   + [4,5,6,7]*2
+context_goals = [0]*4 + [1]*4 + [2]*4 + [3]*4
 
 
 # randomly start the agent somewhere in the middle of the map
@@ -133,7 +140,7 @@ if rank == 0:
     for clusterings in _clusterings_h:
         clusterings_h += clusterings
     
-    pickle.dump( clusterings_h, open( "IndepEnvClusterings_h.pkl", "wb" ) )
+    pickle.dump( clusterings_h, open( "AmbigEnvClusterings_h_cond_ind.pkl", "wb" ) )
     del _clusterings_h, clusterings_h
 
 
@@ -174,4 +181,4 @@ if rank == 0:
     del _results_fl
 
     results = pd.concat([results_jc, results_ic, results_fl, results_mx, results_h])
-    results.to_pickle("./IndepEnvResults.pkl")
+    results.to_pickle("./AmbigEnvResults_cond_ind.pkl")

@@ -28,8 +28,8 @@ goal_locations = {
 }
 
 # assign goals and mappings to contexts
-context_goals = [0, 3, 0, 3]
-context_maps =  [0, 0, 1, 1]
+context_maps  = [0,1,2,3]*2   + [4,5,6,7]*2
+context_goals = [0]*4 + [1]*4 + [2]*4 + [3]*4
 
 # randomly start the agent somewhere in the middle of the map
 start_locations = [(x, y) for x in range(1, 5) for y in range(1, 5)]
@@ -59,55 +59,4 @@ metarl_kwargs = dict(m_biases=[0.0, 0.0], mixing_lrate=0.2, mixing_temp=5.0)
 sim1 = simulate_task(n_sim, task_kwargs, agent_kwargs=agent_kwargs, alpha=1.0, seed=seed,
                      meta_kwargs=meta_kwargs, metarl_kwargs=metarl_kwargs)
 
-sim1.to_pickle("./IndepEnvResults.pkl")
-
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-plot_results(sim1, figsize=(9, 4.5))
-
-with sns.axes_style('ticks'):
-    sns.factorplot(x='Times Seen Context', y='n actions taken', data=sim1[sim1['In goal']],
-          units='Simulation Number', hue='Model', estimator=np.mean,
-          palette='Set2')
-    sns.despine()
-
-df0 = sim1[sim1['In goal']].groupby(['Model', 'Simulation Number']).sum()
-cum_steps = [df0.loc[m]['n actions taken'].values for m in set(sim1.Model)]
-model = []
-for m in set(sim1.Model):
-    model += [m] * (sim1[sim1.Model == m]['Simulation Number'].max() + 1)
-df1 = pd.DataFrame({
-        'Cumulative Steps Taken': np.concatenate(cum_steps),
-        'Model': model
-    })
-
-sns.set_context('paper', font_scale=1.5)
-
-with sns.axes_style('ticks'):
-    fig, ax = plt.subplots(1, 1, figsize=(4, 3))
-    cc = sns.color_palette('Set2')
-    sns.violinplot(data=df1, x='Model', y='Cumulative Steps Taken', ax=ax, palette=cc[1:],
-                   order=["Independent", "Joint", 'Hierarchical', 'Meta']
-                   )
-    ybar = df1.loc[df1.Model == 'Meta', 'Cumulative Steps Taken'].median()
-    ax.plot([-0.5, 3], [ybar, ybar], 'r--')
-    ax.set_ylabel('Total Steps')
-    ax.set_xticklabels(['Indep.', 'Joint', 'Hier.', 'Meta'])
-    sns.despine()
-    plt.savefig('sim1_mixed.png', dpi=300, bbox_inches='tight')
-    
-    
-
-
-
-df0 = sim1[sim1['In goal']].groupby(['Model', 'Simulation Number', 'Trial Number']).mean()
-df0 = df0.groupby(level=[0, 1]).cumsum().reset_index()
-df0 = df0.rename(index=str, columns={'n actions taken': "Cumulative Steps Taken"})
-df0 = df0[df0['Trial Number'] == df0['Trial Number'].max()]
-print df0.groupby('Model').mean()['Cumulative Steps Taken']
-print df0.groupby('Model')['Cumulative Steps Taken'].std()
-
-
+sim1.to_pickle("./CondIndepEnvResults.pkl")

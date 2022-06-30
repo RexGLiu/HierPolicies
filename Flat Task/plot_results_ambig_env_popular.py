@@ -632,7 +632,7 @@ def filter_long_trials(sim_results):
         
 
 name_list = ["AmbigEnvResults_popular_goal"]
-savefig = True
+savefig = False
 
 
 for name in name_list:

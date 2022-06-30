@@ -11,9 +11,10 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from scipy.stats import ttest_ind as ttest
 
 
-def plot_one_result(name, savefig):
+def plot_one_result(name, savefig, baseline):
     sim_results = pd.read_pickle("./analyses/"+name+".pkl")
 
     results_fl = sim_results[sim_results['Model'] == 'Flat']
@@ -32,21 +33,27 @@ def plot_one_result(name, savefig):
     df1 = pd.DataFrame({'Cumulative Steps Taken': np.concatenate(cum_steps),'Model': model})
 
 
-    # filter out trials exceeding threshold length
-    threshold = df1[df1['Model']=='Flat']['Cumulative Steps Taken'].mean() - 2*df1[df1['Model']=='Flat']['Cumulative Steps Taken'].std()
-    n_trials = results_fl['Simulation Number'].max()+1
-    df1['Failed'] = df1['Cumulative Steps Taken'] > threshold
-    df1['Simulation Number'] = np.concatenate([range(n_trials) for m in set(sim_results.Model)])
+    # # filter out trials exceeding threshold length
+    # threshold = df1[df1['Model']=='Flat']['Cumulative Steps Taken'].mean() + 2.5*df1[df1['Model']=='Flat']['Cumulative Steps Taken'].std()
+    # n_trials = results_fl['Simulation Number'].max()+1
+    # df1['Failed'] = df1['Cumulative Steps Taken'] > threshold
+    # df1['Simulation Number'] = np.concatenate([range(n_trials) for m in set(sim_results.Model)])
     
-    for m in set(sim_results.Model):
-        if m == 'Flat':
-            continue
+    # failed_set = df1[df1['Failed']]
+
+    # new_sim_results = results_fl
+    # for m in set(sim_results.Model):
+    #     if m == 'Flat':
+    #         continue
+    #     truncated_sims = list(set( failed_set[failed_set['Model']==m]['Simulation Number']))
         
-        truncated_sims = set( df1[df1['Failed']][df1['Model']==m]['Simulation Number'])
-        tmp = sim_results[sim_results['Model']==m]
-        sim_results[sim_results['Model']==m] = tmp[~tmp.isin(truncated_sims)]
+    #     tmp = sim_results[sim_results['Model']==m]
+    #     tmp_df = tmp[~tmp['Simulation Number'].isin(truncated_sims)]
+    #     new_sim_results = new_sim_results.append(tmp_df, ignore_index=True)
+
+    # sim_results = new_sim_results
         
-    df1 = df1[(df1.Model=='Flat') | (~df1.Failed)]
+    # df1 = df1[(df1.Model=='Flat') | (~df1.Failed)]
 
 
     bar_colours = sns.color_palette("Set2")[1:]
@@ -64,6 +71,7 @@ def plot_one_result(name, savefig):
     plt.tight_layout()
     plt.gca().set_yticks(range(0,50,10))
     plt.gca().set_ylim(0,45)
+    
 
     goal_data = sim_results[sim_results['In goal']]
     goal_data = goal_data[goal_data['Times Seen Context'] == 1]
@@ -84,11 +92,29 @@ def plot_one_result(name, savefig):
     axins.set_xlabel("")
     axins.set_ylabel("frac improvement", fontsize=13)
     axins.tick_params(axis='both', which='major', labelsize=13)
-    axins.set_yticks(np.linspace(0.,0.4,5))
-    plt.ylim((0.,0.4))
+    
+    if name == 'IndepEnvResults':
+        axins.set_yticks(np.linspace(-0.1,0.2,4))
+        plt.ylim((-0.1,0.2))
+    elif name == 'JointEnvResults':
+        axins.set_yticks(np.linspace(0.0,0.4,5))
+        plt.ylim((0.,0.4))
+
+    # axins.set_yticks(np.linspace(0.0,0.5,6))
+    # plt.ylim((0.0,0.5))
     sns.despine()
     if savefig:
         plt.savefig("figs/"+name+"_ctx.png", dpi=300, bbox_inches='tight')
+        
+    # output test statistics
+    if name == 'IndepEnvResults':
+        stat_compare_agents('Joint', goal_data)
+    elif name == 'JointEnvResults':
+        stat_compare_agents('Independent', goal_data)
+    else:
+        print('Unrecognised dataset')
+        raise
+        
 
 
     plt.figure(figsize=(5, 4.5))
@@ -102,18 +128,55 @@ def plot_one_result(name, savefig):
         plt.gca().set_xticklabels(['Flat', 'Indep.', 'Joint', 'Hier.', 'Meta'])
         sns.despine()
     plt.tight_layout()
-    plt.gca().set_yticks(range(200,700,100))
-    plt.gca().set_ylim(200,650)
+    # plt.gca().set_yticks(range(200,700,100))
+    # plt.gca().set_ylim(200,650)
     if savefig:
         plt.savefig("figs/"+name+"_violin.png", dpi=300, bbox_inches='tight')
 
 
+def WelchSatterthwaitte(dataset1, dataset2):
+    N1 = dataset1.size
+    N2 = dataset2.size
+    nu1 = N1-1
+    nu2 = N2-1
+
+    s1 = dataset1.std()
+    s2 = dataset2.std()
+    
+    
+    S1 = s1*s1/N1
+    S2 = s2*s2/N2
+    
+    nu = (S1 + S2)*(S1 + S2)/(S1*S1/nu1 + S2*S2/nu2)
+    return nu
+
+
+def stat_compare_agents(baseline_model, goal_data):
+    # runs statistical test comparing each agent's performance against a baseline agent
+    
+    baseline_data = goal_data[goal_data['Model'] == baseline_model]['frac improvement']
+    
+    for m in set(goal_data.Model):
+        if m == baseline_model:
+            continue
+        
+        model_data = goal_data[goal_data['Model'] == m]['frac improvement']
+        t, p = ttest(model_data, baseline_data, equal_var=False)
+        df = WelchSatterthwaitte(model_data, baseline_data)
+        print(m, t, p/2, df, np.mean(model_data), np.mean(baseline_data), np.mean(model_data)-np.mean(baseline_data))
+    
+
+
+
 filename_list = ["IndepEnvResults", "JointEnvResults"]
+baseline = ['Independent', 'Joint']
+
+
 n_files = len(filename_list)
 
-savefig = True
+savefig = False
 
 for idx, name in enumerate(filename_list):
     print name
     
-    plot_one_result(name, savefig)
+    plot_one_result(name, savefig, baseline)
