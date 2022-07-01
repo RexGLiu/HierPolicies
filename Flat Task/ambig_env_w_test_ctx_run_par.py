@@ -159,7 +159,8 @@ if rank == 0:
     for clusterings in _clusterings_h:
         clusterings_h += clusterings
     
-    pickle.dump( clusterings_h, open( "AmbigEnvWTestCtxClusterings_h.pkl", "wb" ) )
+    pickle.dump(clusterings_h, open( "AmbigEnvResults_popular_goal_clusterings_h.pkl", "wb" ) )
+    # pickle.dump(clusterings_h, open("AmbigEnvResults_rare_goal_clusterings_h.pkl", "wb"))
     del _clusterings_h, clusterings_h
 
 
@@ -200,5 +201,6 @@ if rank == 0:
     del _results_fl
 
     results = pd.concat([results_jc, results_ic, results_fl, results_mx, results_h])
-    results.to_pickle("./AmbigEnvWTestCtxResults.pkl")
+    results.to_pickle("./AmbigEnvResults_popular_goal.pkl")
+    # results.to_pickle("./AmbigEnvResults_rare_goal.pkl")
     

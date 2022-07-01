@@ -89,7 +89,8 @@ metarl_kwargs = dict(m_biases=[0.0, 0.0], mixing_lrate=0.2, mixing_temp=5.0)
 sim2 = simulate_task(n_sim, task_kwargs, agent_kwargs=agent_kwargs, meta_kwargs=meta_kwargs,
                      metarl_kwargs=metarl_kwargs, alpha=1.0, seed=seed)
 
-sim2.to_pickle("./AmbigEnvWTestCtxResults.pkl")
+sim2.to_pickle("./AmbigEnvResults_popular_goal_clusterings_h.pkl")
+# sim2.to_pickle("./AmbigEnvResults_rare_goal_clusterings_h.pkl")
 
 
 import pandas as pd
