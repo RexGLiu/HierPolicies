@@ -350,7 +350,7 @@ class FlatAgent(MultiStepAgent):
 class IndependentClusterAgent(FlatAgent):
 
     def __init__(self, task, alpha=1.0, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
-                 mapping_prior=0.001, goal_prior=0.001, min_particles=100, max_particles=10000):
+                 mapping_prior=0.001, goal_prior=0.001, min_particles=300, max_particles=10000):
         super(FlatAgent, self).__init__(task, min_particles, max_particles)
 
         self.name = "Independent"
@@ -601,7 +601,7 @@ class IndependentClusterAgent(FlatAgent):
 class HierarchicalAgent(IndependentClusterAgent):
     
     def __init__(self, task, alpha0=0.7, alpha1=1.0, gamma=0.80, inv_temp=10.0, stop_criterion=0.001,
-                 mapping_prior=0.001, goal_prior=0.001, min_particles=100, max_particles=10000):
+                 mapping_prior=0.001, goal_prior=0.001, min_particles=300, max_particles=10000):
         super(FlatAgent, self).__init__(task, min_particles, max_particles)
 
         self.name = "Hierarchical"

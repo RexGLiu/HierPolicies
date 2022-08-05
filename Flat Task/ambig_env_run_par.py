@@ -1,14 +1,16 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Sun Apr 12 19:19:14 2020
-@author: Rex Liu (based heavily(!) on Nick Franklin's code)
+Created on Sun Apr 12 18:50:29 2020
+
+@author: rex
 """
 
 from mpi4py import MPI
 
 from model import make_task, JointClustering, IndependentClusterAgent, FlatControlAgent, MetaAgent, HierarchicalAgent
 from model import simulate_one
+
 import numpy as np
 import pandas as pd
 import pickle
@@ -16,31 +18,21 @@ import pickle
 # define all of the task parameters
 grid_world_size = (6, 6)
 
-mapping_listings = [
-    {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
-    {1: u'left', 2: u'up', 3: u'down', 0: u'right'},
-    {2: u'left', 3: u'up', 0: u'down', 1: u'right'},
-    {3: u'left', 0: u'up', 1: u'down', 2: u'right'},
-    {4: u'left', 5: u'up', 6: u'down', 7: u'right'},
-    {5: u'left', 6: u'up', 7: u'down', 4: u'right'},
-    {6: u'left', 7: u'up', 4: u'down', 5: u'right'},
-    {7: u'left', 4: u'up', 5: u'down', 6: u'right'}
-]
+# define mapping between primitive action (a in [0, 1]) and cardinal movements
+# (left, right, up down)
+mapping_definitions = {
+    0: {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
+    1: {1: u'left', 2: u'up', 3: u'down', 0: u'right'},
+    2: {2: u'left', 3: u'up', 0: u'down', 1: u'right'},
+    3: {3: u'left', 0: u'up', 1: u'down', 2: u'right'},
+    4: {4: u'left', 5: u'up', 6: u'down', 7: u'right'},
+    5: {5: u'left', 6: u'up', 7: u'down', 4: u'right'},
+    6: {6: u'left', 7: u'up', 4: u'down', 5: u'right'},
+    7: {7: u'left', 4: u'up', 5: u'down', 6: u'right'}
+}
 
-# mapping_listings = [
-#     {0: u'left', 1: u'up', 2: u'down', 3: u'right'},
-#     {1: u'left', 2: u'up', 3: u'down', 4: u'right'},
-#     {2: u'left', 3: u'up', 4: u'down', 5: u'right'},
-#     {3: u'left', 4: u'up', 5: u'down', 6: u'right'},
-#     {4: u'left', 5: u'up', 6: u'down', 7: u'right'},
-#     {5: u'left', 6: u'up', 7: u'down', 0: u'right'},
-#     {6: u'left', 7: u'up', 0: u'down', 1: u'right'},
-#     {7: u'left', 0: u'up', 1: u'down', 2: u'right'}
-# ]
 
-n_mappings = len(mapping_listings)
-
-# define goal locations 
+# define goal locations in (x, y) coordinate space
 goal_locations = {
     0:(0, 0),
     1:(0, 5),
@@ -49,35 +41,35 @@ goal_locations = {
 }
 
 
-# Room statistics favouring more popular goal at test time
-context_goals = [0]*6 + [3]*28
-context_maps =  [0]*4 + [1,2]*15
+# assign goals and mappings to contexts
+context_maps  = [0]*3 + [1]*3 + [2,3,4,5,6]*2
+context_goals = [0]*3 + [3]*3 + [1]*5 + [2]*5
 
-test_context_goals = [0,0,3]
-test_context_maps =  [0,4,5]
-
-
-# Room statistics favouring less popular goal at test time
-# context_goals = [0]*6 + [3]*10
-# context_maps =  [0]*4 + [1,2]*6
-
-# test_context_goals = [0,0,3]
-# test_context_maps =  [0,4,5]
-
-
+# randomly start the agent somewhere in the middle of the map
 start_locations = [(x, y) for x in range(1, 5) for y in range(1, 5)]
-context_balance = [4] * (len(context_goals) + len(test_context_goals))
+
+# the number of times each context is shown
+context_balance = [4] * len(context_goals)
 
 # the hazard rate determines a degree of auto correlation in the context orders. This is
 # useful in human studies. The hazard rates is the defined by the probability of a 
 # context change after i repeats is f(i)
 hazard_rates = [0.5, 0.67, 0.67, 0.75, 1.0, 1.0]
 
+
+task_kwargs = dict(context_balance=context_balance, 
+                   context_goals=[goal_locations[g] for g in context_goals], 
+                   context_maps=[mapping_definitions[m] for m in context_maps],
+                   hazard_rates=hazard_rates, start_locations=start_locations,
+                   grid_world_size=grid_world_size, list_goal_locations=goal_locations.values(),
+                   )
+
+
+n_sims = 150 ## run 150 in the paper
+
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 n_procs = comm.Get_size()
-
-n_sims = 150 ## run 150 in the paper
 
 agent_kwargs = dict(discount_rate=0.75, inverse_temperature=5.0, alpha=1.0)
 meta_kwargs = dict(agent_kwargs)
@@ -87,7 +79,7 @@ del hier_agent_kwargs['alpha']
 
 
 if rank == 0:
-    seed = 65756
+    seed = 234234
     np.random.seed(seed)
     rand_seeds = np.random.randint(np.iinfo(np.int32).max, size=n_procs)
 else:
@@ -116,18 +108,6 @@ clusterings_h = [None] * n_local_sims
 for kk in range(n_local_sims):
     sim_number = sim_offset+kk
     
-    mapping_definitions = {ii: mapping_listings[ii] for ii in np.random.permutation(n_mappings)}
-    
-    # randomly start the agent somewhere in the middle of the map
-    task_kwargs = dict(context_balance=context_balance, 
-                   context_goals=[goal_locations[g] for g in context_goals], 
-                   context_maps=[mapping_definitions[m] for m in context_maps],
-                   hazard_rates=hazard_rates, start_locations=start_locations,
-                   test_context_goals=[goal_locations[g] for g in test_context_goals], 
-                   test_context_maps=[mapping_definitions[m] for m in test_context_maps],
-                   grid_world_size=grid_world_size, list_goal_locations=goal_locations.values()
-                   )
-    
     task = make_task(**task_kwargs)
     results_h[kk], clusterings_h[kk] = simulate_one(HierarchicalAgent, sim_number, task, agent_kwargs=hier_agent_kwargs)
 
@@ -152,14 +132,14 @@ if rank == 0:
     results_h = pd.concat(results_h)
     results_h['Model'] = ['Hierarchical'] * len(results_h)
     del _results_h
-    
+
 _clusterings_h = comm.gather(clusterings_h, root=0)
 if rank == 0:
     clusterings_h = []
     for clusterings in _clusterings_h:
         clusterings_h += clusterings
     
-    pickle.dump( clusterings_h, open( "AmbigEnvClusterings_h.pkl", "wb" ) )
+    pickle.dump( clusterings_h, open( "AmbigEnvClusterings_h_mixed.pkl", "wb" ) )
     del _clusterings_h, clusterings_h
 
 
@@ -200,5 +180,4 @@ if rank == 0:
     del _results_fl
 
     results = pd.concat([results_jc, results_ic, results_fl, results_mx, results_h])
-    results.to_pickle("./AmbigEnvResults.pkl")
-    
+    results.to_pickle("./AmbigEnvResults_mixed.pkl")

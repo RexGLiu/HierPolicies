@@ -20,7 +20,7 @@ goal_coods = [(1, 2), (2, 5), (3, 1), (4, 3)]
 alpha = 1.0
 inv_temp = 5.0
 min_particles = 100
-max_particles = 10000
+max_particles = 20000
 
 
 comm = MPI.COMM_WORLD
