@@ -186,5 +186,6 @@ if rank == 0:
     results_fl['Model'] = ['Flat'] * len(results_fl)
     del _results_fl
 
+    # save results to file
     results = pd.concat([results_jc, results_ic, results_fl, results_mx, results_h])
     results.to_pickle("./AmbigEnvResults_mixed.pkl")
